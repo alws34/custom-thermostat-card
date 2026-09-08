@@ -75,6 +75,13 @@ export class CustomThermostatCard extends LitElement implements LovelaceCard {
     this.controller.attach(() => this.requestUpdate());
   }
 
+  connectedCallback(): void {
+    super.connectedCallback();
+    // opt this card out of ancestor swipe/carousel gesture capture
+    // (simple-swipe-card / Swiper honour this class)
+    this.classList.add("swiper-no-swiping");
+  }
+
   static getConfigElement(): HTMLElement {
     return document.createElement("custom-thermostat-card-editor");
   }

@@ -52,6 +52,20 @@ export class AtcDial extends LitElement {
   private activeSlot: TargetSlot = "single";
   private gestureRecognized = false;
   private startXY: [number, number] = [0, 0];
+  private pointerId: number | null = null;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    // pointerdown on the host, capture phase — so we claim the gesture before
+    // an ancestor swipe/carousel (simple-swipe-card, Swiper) can start tracking
+    this.addEventListener("pointerdown", this.onPointerDown);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.removeEventListener("pointerdown", this.onPointerDown);
+    this.endDrag();
+  }
 
   static styles = css`
     :host {
@@ -61,11 +75,21 @@ export class AtcDial extends LitElement {
       position: relative;
       touch-action: none;
     }
+    .dial-slider {
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      /* keep the browser (and ancestor swipe carousels) from stealing the drag */
+      touch-action: none;
+      outline: none;
+    }
     svg {
       width: 100%;
       height: 100%;
       display: block;
       overflow: visible;
+      touch-action: none;
     }
     .track {
       fill: none;
@@ -180,11 +204,9 @@ export class AtcDial extends LitElement {
     :host([data-dragging]) .thumb-touch {
       opacity: 1;
     }
-    :host(:focus-visible) {
-      outline: none;
-    }
-    :host(:focus-visible) .track {
+    .dial-slider:focus-visible .track {
       stroke: var(--atc-focus);
+      stroke-width: calc(var(--atc-track-width, 14) + 2);
     }
   `;
 
@@ -208,8 +230,22 @@ export class AtcDial extends LitElement {
   }
 
   private onPointerDown = (ev: PointerEvent) => {
-    if (this.disabled) return;
-    (ev.target as Element).setPointerCapture(ev.pointerId);
+    if (this.disabled || (ev.pointerType === "mouse" && ev.button !== 0)) return;
+    // only the dial ring starts a drag — not the centre readout buttons
+    if (!ev.composedPath().some((n) => n instanceof SVGSVGElement)) return;
+
+    // claim the gesture so an ancestor carousel/swipe card can't take it
+    ev.stopPropagation();
+    this.pointerId = ev.pointerId;
+    try {
+      this.setPointerCapture(ev.pointerId);
+    } catch {
+      /* capture may be unavailable in some embeds; window listeners cover it */
+    }
+    window.addEventListener("pointermove", this.onPointerMove, { passive: false });
+    window.addEventListener("pointerup", this.onPointerUp);
+    window.addEventListener("pointercancel", this.onPointerCancel);
+
     this.startXY = [ev.clientX, ev.clientY];
     this.gestureRecognized = false;
     const [cx, cy] = this.center();
@@ -222,15 +258,32 @@ export class AtcDial extends LitElement {
     this.setAttribute("data-dragging", "");
   };
 
+  private endDrag(): void {
+    window.removeEventListener("pointermove", this.onPointerMove);
+    window.removeEventListener("pointerup", this.onPointerUp);
+    window.removeEventListener("pointercancel", this.onPointerCancel);
+    if (this.pointerId != null) {
+      try {
+        this.releasePointerCapture(this.pointerId);
+      } catch {
+        /* already released */
+      }
+      this.pointerId = null;
+    }
+    this.dragging = false;
+    this.removeAttribute("data-dragging");
+  }
+
   private onPointerMove = (ev: PointerEvent) => {
-    if (!this.dragging) return;
+    if (!this.dragging || (this.pointerId != null && ev.pointerId !== this.pointerId)) return;
     if (!this.gestureRecognized) {
       const dx = ev.clientX - this.startXY[0];
       const dy = ev.clientY - this.startXY[1];
-      if (Math.hypot(dx, dy) < 4) return; // not yet a drag — keep page scrollable
+      if (Math.hypot(dx, dy) < 3) return; // let a tap through untouched
       this.gestureRecognized = true;
     }
     ev.preventDefault();
+    ev.stopPropagation();
     const [cx, cy] = this.center();
     let f = pointerToFraction(ev.clientX - cx, ev.clientY - cy);
 
@@ -252,18 +305,18 @@ export class AtcDial extends LitElement {
     );
   };
 
-  private onPointerUp = () => {
-    if (!this.dragging) return;
-    this.dragging = false;
-    this.removeAttribute("data-dragging");
-    this.dispatchEvent(new CustomEvent("dial-commit"));
+  private onPointerUp = (ev: PointerEvent) => {
+    if (this.pointerId != null && ev.pointerId !== this.pointerId) return;
+    const wasDragging = this.dragging;
+    this.endDrag();
+    if (wasDragging) this.dispatchEvent(new CustomEvent("dial-commit"));
   };
 
-  private onPointerCancel = () => {
-    if (!this.dragging) return;
-    this.dragging = false;
-    this.removeAttribute("data-dragging");
-    this.dispatchEvent(new CustomEvent("dial-cancel"));
+  private onPointerCancel = (ev: PointerEvent) => {
+    if (this.pointerId != null && ev.pointerId !== this.pointerId) return;
+    const wasDragging = this.dragging;
+    this.endDrag();
+    if (wasDragging) this.dispatchEvent(new CustomEvent("dial-cancel"));
   };
 
   private onKeyDown = (ev: KeyboardEvent) => {
@@ -287,8 +340,8 @@ export class AtcDial extends LitElement {
       ? this.renderRangeArcs()
       : this.renderSingleArc();
     return html`
-      <svg
-        viewBox="0 0 100 100"
+      <div
+        class="dial-slider"
         role="slider"
         tabindex=${this.disabled ? -1 : 0}
         aria-valuemin=${this.min}
@@ -297,18 +350,19 @@ export class AtcDial extends LitElement {
         aria-valuetext=${this.ariaText()}
         aria-label=${this.targetLabel || "Target temperature"}
         aria-disabled=${this.disabled}
-        style=${`color:${this.activityColor};--atc-arc-color:${this.activityColor}`}
-        @pointerdown=${this.onPointerDown}
-        @pointermove=${this.onPointerMove}
-        @pointerup=${this.onPointerUp}
-        @pointercancel=${this.onPointerCancel}
         @keydown=${this.onKeyDown}
       >
-        <path class="track" part="dial-track" d=${trackPath} />
-        ${active}
-        <path class="hit" part="dial-hit" d=${trackPath} />
-      </svg>
-      <div class="center" part="dial-readout">${this.renderCenter()}</div>
+        <svg
+          viewBox="0 0 100 100"
+          aria-hidden="true"
+          style=${`color:${this.activityColor};--atc-arc-color:${this.activityColor}`}
+        >
+          <path class="track" part="dial-track" d=${trackPath} />
+          ${active}
+          <path class="hit" part="dial-hit" d=${trackPath} />
+        </svg>
+        <div class="center" part="dial-readout">${this.renderCenter()}</div>
+      </div>
     `;
   }
 

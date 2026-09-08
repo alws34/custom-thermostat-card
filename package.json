@@ -1,6 +1,6 @@
 {
   "name": "custom-thermostat-card",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Adaptive Home Assistant Lovelace thermostat card with a horseshoe dial, compact tiles, inline expansion and an accessible overlay. Climate and water_heater, theme-driven, card-mod friendly.",
   "type": "module",
   "main": "dist/custom-thermostat-card.js",
