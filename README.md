@@ -34,7 +34,8 @@ light/dark mode, colours, radius and shadows. Works with `climate` and
 ### HACS (custom repository)
 
 1. HACS → **⋮** → **Custom repositories**.
-2. Add `https://github.com/alws34/custom-thermostat-card` with category **Lovelace**.
+2. Add `https://github.com/alws34/custom-thermostat-card` with type **Dashboard**
+   (older HACS calls this "Lovelace" / "Plugin").
 3. Install **Custom Thermostat Card**.
 4. HACS adds the dashboard resource automatically. If you manage resources
    manually, add:
