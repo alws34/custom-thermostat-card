@@ -75,11 +75,13 @@ export class AtcDial extends LitElement {
     // pointerdown on the host, capture phase — so we claim the gesture before
     // an ancestor swipe/carousel (simple-swipe-card, Swiper) can start tracking
     this.addEventListener("pointerdown", this.onPointerDown);
+    this.addEventListener("lostpointercapture", this.onLostCapture);
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.removeEventListener("pointerdown", this.onPointerDown);
+    this.removeEventListener("lostpointercapture", this.onLostCapture);
     this.endDrag();
   }
 
@@ -209,16 +211,12 @@ export class AtcDial extends LitElement {
       stroke-width: 2;
       pointer-events: none;
     }
+    /* only in the DOM while actively dragging (see renderSingleArc) */
     .thumb-touch {
       fill: color-mix(in srgb, var(--atc-arc-color, currentColor) 22%, transparent);
       stroke: var(--atc-arc-color, currentColor);
       stroke-width: 1.5;
-      opacity: 0;
-      transition: opacity 160ms linear;
       pointer-events: none;
-    }
-    :host([data-dragging]) .thumb-touch {
-      opacity: 1;
     }
     .tick {
       transition: none;
@@ -340,8 +338,8 @@ export class AtcDial extends LitElement {
     if (this.range && this.activeSlot !== this.selectedSlot) {
       this.dispatchEvent(new CustomEvent("slot-select", { detail: { slot: this.activeSlot } }));
     }
-    this.dragging = true;
-    this.setAttribute("data-dragging", "");
+    // `dragging` only becomes true once the gesture clears the 3px threshold
+    // (see onPointerMove) so a tap never flashes the interaction thumb
   };
 
   private endDrag(): void {
@@ -360,17 +358,29 @@ export class AtcDial extends LitElement {
       }
       this.pointerId = null;
     }
+    this.gestureRecognized = false;
     this.dragging = false;
     this.removeAttribute("data-dragging");
   }
 
+  private onLostCapture = () => {
+    // browser yanked the capture (element moved, gesture interrupted) — treat
+    // as a release so the drag state can never get stuck
+    if (this.pointerId == null) return;
+    const wasDragging = this.dragging;
+    this.endDrag();
+    if (wasDragging) this.dispatchEvent(new CustomEvent("dial-commit"));
+  };
+
   private onPointerMove = (ev: PointerEvent) => {
-    if (!this.dragging || (this.pointerId != null && ev.pointerId !== this.pointerId)) return;
+    if (this.pointerId == null || ev.pointerId !== this.pointerId) return;
     if (!this.gestureRecognized) {
       const dx = ev.clientX - this.startXY[0];
       const dy = ev.clientY - this.startXY[1];
       if (Math.hypot(dx, dy) < 3) return; // let a tap through untouched
       this.gestureRecognized = true;
+      this.dragging = true;
+      this.setAttribute("data-dragging", "");
     }
     ev.preventDefault();
     ev.stopPropagation();
@@ -482,7 +492,7 @@ export class AtcDial extends LitElement {
           : nothing
       }
       ${
-        this.thumb === "interaction"
+        this.thumb === "interaction" && this.dragging
           ? svg`<circle class="thumb-touch" part="dial-thumb" cx=${end.x} cy=${end.y} r="6.5" />`
           : nothing
       }

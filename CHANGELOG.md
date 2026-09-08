@@ -4,6 +4,26 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-09-09
+
+### Fixed
+
+- The odometer readout had degraded to a plain in-place count. It is a true
+  digit roll again: each wheel is repositioned every animation frame from the
+  interpolated value (no CSS transition, so it stays linear), and higher
+  wheels only turn in the last unit before they carry — a settled `19.5`
+  shows a solid `1`.
+- Dragging the dial snapped every update to the entity's step (e.g. 0.5°), so
+  the arc and number lurched from one value to the next. The drag now tracks
+  the raw pointer position continuously and only snaps to the real step on
+  release.
+- The interaction thumb could stay visible (and `data-dragging` stuck) after a
+  drag. It is now only in the DOM during an active drag, only appears once the
+  gesture passes the 3px threshold (no flash on tap), and a
+  `lostpointercapture` handler guarantees the drag state is cleared.
+- The compact ▲ stepper was tinted with the activity colour — grey when idle,
+  so it read as disabled. Both steppers use the normal text colour now.
+
 ## [0.2.0] - 2026-09-09
 
 ### Added

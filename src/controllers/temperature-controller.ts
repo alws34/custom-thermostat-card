@@ -99,15 +99,17 @@ export class TemperatureController {
   }
 
   /**
-   * Live drag preview. Updates the optimistic value immediately and arms a
-   * debounced commit so the value still lands if the pointerup / dial-commit
-   * event is lost (kiosk browsers, gesture cancellation, embeds). `commit()`
-   * on pointer release flushes it right away.
+   * Live drag preview. Stores the *raw* pointer value (only clamped, not
+   * snapped to the entity step) so the dial and readout track the finger
+   * continuously — the value is snapped to the real step in `flush()`, on
+   * commit. Arms a debounced commit so the value still lands if the
+   * pointerup / dial-commit event is lost (kiosk browsers, gesture
+   * cancellation, embeds).
    */
   preview(value: number, slot: TargetSlot = this.selectedSlot): void {
     const m = this.model;
     if (!m || !m.available) return;
-    this.setOptimistic(slot, snapToStep(value, m.min, m.max, m.step));
+    this.setOptimistic(slot, clamp(value, m.min, m.max));
     this.scheduleCommit();
   }
 
@@ -194,6 +196,11 @@ export class TemperatureController {
     const m = this.model;
     const p = this.pending;
     if (!m || !p || !this.adapter) return;
+    // snap to the entity's real step only now, on commit — the drag itself
+    // ran on raw values so the dial moved smoothly
+    if (p.single != null) p.single = snapToStep(p.single, m.min, m.max, m.step);
+    if (p.low != null) p.low = snapToStep(p.low, m.min, m.max, m.step);
+    if (p.high != null) p.high = snapToStep(p.high, m.min, m.max, m.step);
     try {
       if (m.isRange && p.low != null && p.high != null) {
         await this.adapter.setRange(p.low, p.high);

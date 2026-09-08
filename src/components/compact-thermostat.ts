@@ -145,9 +145,6 @@ export class AtcCompact extends LitElement {
       outline: 2px solid var(--atc-focus);
       outline-offset: 2px;
     }
-    .step.up {
-      color: var(--activity, var(--atc-text));
-    }
 
     @container (min-width: 250px) {
       .tile {

@@ -45,15 +45,16 @@ describe("temperature controller", () => {
     expect(calls[0].data).toEqual({ temperature: 23.5 });
   });
 
-  it("drag preview never calls a service until commit", () => {
+  it("drag preview tracks the raw value and only snaps on commit", () => {
     const { ctrl, calls } = setup();
     ctrl.preview(28.3);
     ctrl.preview(29.1);
     expect(calls).toHaveLength(0);
-    expect(ctrl.displaySingle).toBe(29); // snapped to 0.5 step
+    expect(ctrl.displaySingle).toBe(29.1); // raw during the drag — no step snap
     ctrl.commit();
     expect(calls).toHaveLength(1);
-    expect(calls[0].data).toEqual({ temperature: 29 });
+    expect(calls[0].data).toEqual({ temperature: 29 }); // snapped to the 0.5 step now
+    expect(ctrl.displaySingle).toBe(29);
   });
 
   it("cancel drops the optimistic edit back to authoritative", () => {

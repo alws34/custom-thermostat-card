@@ -190,7 +190,13 @@ for (const style of STYLES) {
   assert(!!num, "atc-number present in dial");
   if (num) {
     num.value = 25;
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, 40));
+    const wheelsMid = [...num.shadowRoot.querySelectorAll(".strip")].map((s) =>
+      parseFloat((s.getAttribute("style").match(/translateY\((-?[\d.]+)em\)/) || [])[1] || "0"),
+    );
+    const midMoving = wheelsMid.some((v) => Math.abs(v - Math.round(v)) > 0.01);
+    assert(midMoving, "atc-number is mid-roll shortly after a change (continuous)");
+    await new Promise((r) => setTimeout(r, 400));
     const shown = num.shadowRoot.querySelector(".sr-only").textContent;
     assert(/^25(\.0)?°/.test(shown), `atc-number reaches the target ("${shown}")`);
   }
