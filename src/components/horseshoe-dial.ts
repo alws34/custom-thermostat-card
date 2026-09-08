@@ -53,6 +53,7 @@ export class AtcDial extends LitElement {
   private gestureRecognized = false;
   private startXY: [number, number] = [0, 0];
   private pointerId: number | null = null;
+  private moveTarget: EventTarget | null = null;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -231,20 +232,29 @@ export class AtcDial extends LitElement {
 
   private onPointerDown = (ev: PointerEvent) => {
     if (this.disabled || (ev.pointerType === "mouse" && ev.button !== 0)) return;
-    // only the dial ring starts a drag — not the centre readout buttons
-    if (!ev.composedPath().some((n) => n instanceof SVGSVGElement)) return;
+    // start a drag only on the dial surface, never on the centre readout buttons
+    const path = ev.composedPath();
+    const surface = this.renderRoot.querySelector(".dial-slider");
+    if (!surface || !path.includes(surface)) return;
+    if (path.some((n) => n instanceof HTMLButtonElement || n instanceof HTMLAnchorElement)) return;
 
-    // claim the gesture so an ancestor carousel/swipe card can't take it
+    // claim the gesture so an ancestor carousel / swipe card can't take it
     ev.stopPropagation();
     this.pointerId = ev.pointerId;
+    let captured = false;
     try {
       this.setPointerCapture(ev.pointerId);
+      captured = true;
     } catch {
-      /* capture may be unavailable in some embeds; window listeners cover it */
+      /* fall back to window listeners */
     }
-    window.addEventListener("pointermove", this.onPointerMove, { passive: false });
-    window.addEventListener("pointerup", this.onPointerUp);
-    window.addEventListener("pointercancel", this.onPointerCancel);
+    // with pointer capture the events retarget to `this`; otherwise catch them
+    // on `window` so a stopPropagation() by an ancestor can't hide them
+    const target: EventTarget = captured ? this : window;
+    target.addEventListener("pointermove", this.onPointerMove as EventListener, { passive: false });
+    target.addEventListener("pointerup", this.onPointerUp as EventListener);
+    target.addEventListener("pointercancel", this.onPointerCancel as EventListener);
+    this.moveTarget = target;
 
     this.startXY = [ev.clientX, ev.clientY];
     this.gestureRecognized = false;
@@ -259,9 +269,13 @@ export class AtcDial extends LitElement {
   };
 
   private endDrag(): void {
-    window.removeEventListener("pointermove", this.onPointerMove);
-    window.removeEventListener("pointerup", this.onPointerUp);
-    window.removeEventListener("pointercancel", this.onPointerCancel);
+    const target = this.moveTarget;
+    if (target) {
+      target.removeEventListener("pointermove", this.onPointerMove as EventListener);
+      target.removeEventListener("pointerup", this.onPointerUp as EventListener);
+      target.removeEventListener("pointercancel", this.onPointerCancel as EventListener);
+      this.moveTarget = null;
+    }
     if (this.pointerId != null) {
       try {
         this.releasePointerCapture(this.pointerId);

@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-09-09
+
+### Fixed
+
+- Temperature changes from the dial could be lost while HVAC mode changes
+  still worked. The dial now tracks pointer moves on the capture target
+  itself (falling back to `window`) so an ancestor calling
+  `stopPropagation()` can't hide them, and a drag arms a debounced commit
+  in addition to committing on pointer release — so the value lands even
+  if the `pointerup` is swallowed (kiosk browsers, cancelled gestures).
+
 ## [0.1.1] - 2026-09-09
 
 ### Fixed

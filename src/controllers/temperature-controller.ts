@@ -98,11 +98,17 @@ export class TemperatureController {
     this.scheduleCommit();
   }
 
-  /** Live drag preview — no service call until commit(). */
+  /**
+   * Live drag preview. Updates the optimistic value immediately and arms a
+   * debounced commit so the value still lands if the pointerup / dial-commit
+   * event is lost (kiosk browsers, gesture cancellation, embeds). `commit()`
+   * on pointer release flushes it right away.
+   */
   preview(value: number, slot: TargetSlot = this.selectedSlot): void {
     const m = this.model;
     if (!m || !m.available) return;
     this.setOptimistic(slot, snapToStep(value, m.min, m.max, m.step));
+    this.scheduleCommit();
   }
 
   /** Pointer release / explicit flush. */
