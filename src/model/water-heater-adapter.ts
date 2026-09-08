@@ -90,6 +90,7 @@ export class WaterHeaterAdapter implements ThermostatAdapter {
       activity,
       activityLabel,
       targetLabel: this.hass.localize("ui.card.water_heater.target_temperature") || "Set to",
+      currentLabel: this.hass.localize("ui.card.climate.currently") || "Current",
       modes,
       currentMode: typeof a.operation_mode === "string" ? (a.operation_mode as string) : state,
       secondary: this.secondary(away),

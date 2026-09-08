@@ -49,6 +49,8 @@ export interface NormalizedThermostat {
   activityLabel: string;
   /** contextual verb for the readout, e.g. "Heat to", "Set to" */
   targetLabel: string;
+  /** label for the current temperature when shown as the primary value */
+  currentLabel: string;
 
   modes: ModeOption[];
   currentMode: string;

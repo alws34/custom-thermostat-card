@@ -135,6 +135,7 @@ export class ClimateAdapter implements ThermostatAdapter {
       activity,
       activityLabel,
       targetLabel,
+      currentLabel: this.hass.localize("ui.card.climate.currently") || "Current",
       modes,
       currentMode: state,
       secondary: this.secondary(),

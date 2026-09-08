@@ -227,6 +227,8 @@ const SPECS = [
   { title: "Full · heat", cfg: { entity: "climate.living_room", display: "full" } },
   { title: "Full · cool + reel", cfg: { entity: "climate.office", display: "full", number_animation: "reel" } },
   { title: "Full · heat/cool range", cfg: { entity: "climate.bedroom", display: "full" } },
+  { title: "Full · current as primary", cfg: { entity: "climate.living_room", display: "full", show_current_as_primary: true } },
+  { title: "Compact · current as primary", cfg: { entity: "climate.office", display: "compact", show_current_as_primary: true } },
   { title: "Full · thumb always", cfg: { entity: "climate.living_room", display: "full", thumb: "always" } },
   { title: "Full · thumb never", cfg: { entity: "climate.living_room", display: "full", thumb: "never" } },
   { title: "Full · water heater", cfg: { entity: "water_heater.tank", display: "full" } },

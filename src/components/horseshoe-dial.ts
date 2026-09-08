@@ -40,6 +40,9 @@ export class AtcDial extends LitElement {
   @property({ type: String }) targetLabel = "";
   @property({ type: String }) activityLabel = "";
   @property({ type: Number }) current: number | null = null;
+  /** swap the readout so the current temperature is the big value */
+  @property({ type: Boolean }) showCurrentAsPrimary = false;
+  @property({ type: String }) currentLabel = "Current";
 
   @property({ type: Boolean }) range = false;
   @property({ type: Number }) value: number | null = null;
@@ -425,60 +428,80 @@ export class AtcDial extends LitElement {
     `;
   }
 
+  private get currentAsPrimary(): boolean {
+    return this.showCurrentAsPrimary && this.current != null;
+  }
+
+  private bigNumber(value: number) {
+    return html`<span class="readout"
+      ><atc-number
+        .value=${value}
+        .precision=${this.precision}
+        .locale=${this.locale}
+        .animation=${this.animation}
+      ></atc-number
+      >${this.unitLetter ? html`<span class="unit">${this.unitLetter}</span>` : nothing}</span
+    >`;
+  }
+
+  private slotButton(slot: "low" | "high", value: number | null, label: string, color: string) {
+    return html`<button
+      type="button"
+      class="slot ${this.selectedSlot === slot ? "sel" : ""}"
+      aria-pressed=${this.selectedSlot === slot}
+      @click=${() => this.dispatchEvent(new CustomEvent("slot-select", { detail: { slot } }))}
+    >
+      <small style=${`color:${color}`}>${label}</small>
+      <span class="v"
+        ><atc-number
+          .value=${value ?? 0}
+          .precision=${this.precision}
+          .locale=${this.locale}
+          .animation=${this.animation}
+        ></atc-number
+      ></span>
+    </button>`;
+  }
+
   private renderCenter() {
+    const rangeSelector = html`<div class="range-readout">
+      ${this.slotButton("low", this.low, "Heat", "var(--atc-heat)")}
+      ${this.slotButton("high", this.high, "Cool", "var(--atc-cool)")}
+    </div>`;
+
     if (this.range) {
+      if (this.currentAsPrimary) {
+        return html`
+          <span class="label">${this.currentLabel}</span>
+          ${this.bigNumber(this.current as number)}
+          ${rangeSelector}
+          ${this.activityLabel ? html`<span class="sub">${this.activityLabel}</span>` : nothing}
+        `;
+      }
       return html`
         <span class="label">${this.targetLabel}</span>
-        <div class="range-readout">
-          <button
-            type="button"
-            class="slot ${this.selectedSlot === "low" ? "sel" : ""}"
-            aria-pressed=${this.selectedSlot === "low"}
-            @click=${() => this.dispatchEvent(new CustomEvent("slot-select", { detail: { slot: "low" } }))}
-          >
-            <small style="color:var(--atc-heat)">Heat</small>
-            <span class="v"
-              ><atc-number
-                .value=${this.low ?? 0}
-                .precision=${this.precision}
-                .locale=${this.locale}
-                .animation=${this.animation}
-              ></atc-number
-            ></span>
-          </button>
-          <button
-            type="button"
-            class="slot ${this.selectedSlot === "high" ? "sel" : ""}"
-            aria-pressed=${this.selectedSlot === "high"}
-            @click=${() => this.dispatchEvent(new CustomEvent("slot-select", { detail: { slot: "high" } }))}
-          >
-            <small style="color:var(--atc-cool)">Cool</small>
-            <span class="v"
-              ><atc-number
-                .value=${this.high ?? 0}
-                .precision=${this.precision}
-                .locale=${this.locale}
-                .animation=${this.animation}
-              ></atc-number
-            ></span>
-          </button>
-        </div>
+        ${rangeSelector}
         ${this.current != null
           ? html`<span class="sub">${this.fmtNum(this.current)}${this.unitShort()} ${this.nowLabel()}</span>`
           : nothing}
       `;
     }
+
+    if (this.currentAsPrimary) {
+      return html`
+        <span class="label">${this.currentLabel}</span>
+        ${this.bigNumber(this.current as number)}
+        <span class="sub">
+          ${this.targetLabel} ${this.fmtNum(this.value ?? this.min)}${this.unitShort()}${this.activityLabel
+            ? html` · ${this.activityLabel}`
+            : nothing}
+        </span>
+      `;
+    }
+
     return html`
       <span class="label">${this.targetLabel}</span>
-      <span class="readout"
-        ><atc-number
-          .value=${this.value ?? 0}
-          .precision=${this.precision}
-          .locale=${this.locale}
-          .animation=${this.animation}
-        ></atc-number
-        >${this.unitLetter ? html`<span class="unit">${this.unitLetter}</span>` : nothing}</span
-      >
+      ${this.bigNumber(this.value ?? 0)}
       ${this.current != null
         ? html`<span class="sub">${this.activityLabel} · ${this.fmtNum(this.current)}${this.unitShort()}</span>`
         : this.activityLabel

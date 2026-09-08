@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-09-09
+
+### Fixed
+
+- `show_current_as_primary` did nothing. It now swaps the readout so the
+  current temperature is the big value and the target moves to the
+  secondary line (matching Home Assistant), in both the full dial and the
+  compact tile. The dial still drags to set the target.
+
 ## [0.1.2] - 2026-09-09
 
 ### Fixed

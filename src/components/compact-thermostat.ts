@@ -192,7 +192,8 @@ export class AtcCompact extends LitElement {
         <div class="id">
           <div class="name">${m.name}</div>
           <div class="status" part="status">
-            <span class="dot"></span>${m.activityLabel}${m.current != null
+            <span class="dot"></span>${m.activityLabel}${m.current != null &&
+            !(this.config.show_current_as_primary && !m.isRange)
               ? html` · ${this.fmt(m.current)}°${this.unitLetter}`
               : nothing}
           </div>
@@ -236,18 +237,24 @@ export class AtcCompact extends LitElement {
 
   private renderSingle() {
     const c = this.controller;
+    const m = this.model;
+    const currentPrimary = this.config.show_current_as_primary && m.current != null;
+    const big = currentPrimary ? (m.current as number) : c.displaySingle ?? 0;
+    const cap = currentPrimary
+      ? `${m.targetLabel} ${this.fmt(c.displaySingle ?? m.min)}°${this.unitLetter}`
+      : m.targetLabel;
     return html`
       <div class="readout" part="readout">
         <span class="big"
           ><atc-number
-            .value=${c.displaySingle ?? 0}
-            .precision=${this.model.precision}
+            .value=${big}
+            .precision=${m.precision}
             .locale=${this.locale}
             .animation=${this.config.number_animation}
           ></atc-number
           >${this.unitLetter ? html`<span class="unit">${this.unitLetter}</span>` : nothing}</span
         >
-        <span class="cap">${this.model.targetLabel}</span>
+        <span class="cap">${cap}</span>
       </div>
     `;
   }

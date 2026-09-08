@@ -133,6 +133,8 @@ export class AtcFull extends LitElement {
           .targetLabel=${m.targetLabel}
           .activityLabel=${m.activityLabel}
           .current=${m.current}
+          .showCurrentAsPrimary=${this.config.show_current_as_primary}
+          .currentLabel=${m.currentLabel}
           .range=${m.isRange}
           .value=${c.displaySingle ?? m.min}
           .low=${c.displayLow}
