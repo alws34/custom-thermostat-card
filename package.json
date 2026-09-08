@@ -1,0 +1,49 @@
+{
+  "name": "adaptive-thermostat-card",
+  "version": "0.1.0",
+  "description": "Adaptive Home Assistant Lovelace thermostat card with a horseshoe dial, compact tiles, inline expansion and an accessible overlay. Climate and water_heater, theme-driven, card-mod friendly.",
+  "type": "module",
+  "main": "dist/adaptive-thermostat-card.js",
+  "module": "dist/adaptive-thermostat-card.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"*.md\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "node scripts/build.mjs && node preview/serve.mjs"
+  },
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "thermostat",
+    "climate",
+    "water-heater",
+    "hacs",
+    "custom-card",
+    "lit"
+  ],
+  "author": "alws34",
+  "license": "MIT",
+  "dependencies": {
+    "lit": "^3.2.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "custom-card-helpers": "^1.9.0",
+    "esbuild": "^0.24.0",
+    "eslint": "^8.57.1",
+    "jsdom": "^25.0.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
