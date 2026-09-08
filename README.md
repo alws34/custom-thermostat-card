@@ -78,15 +78,24 @@ round-trips.
 | `name`                    | string  | entity name    | Override the displayed name. |
 | `display`                 | string  | `compact`      | `compact` or `full`. |
 | `open_behavior`           | string  | `overlay`      | For compact: `overlay` or `inline`. |
-| `thumb`                   | string  | `interaction`  | `interaction`, `always` or `never`. |
-| `number_animation`        | string  | `odometer`     | `odometer` (changed digits roll) or `reel` (whole value rolls). |
+| `dial_style`              | string  | `arc`          | Full-display control look: `arc`, `ticks`, `gradient`, `thermometer`, `minimal`. |
+| `thumb`                   | string  | `interaction`  | `interaction`, `always` or `never` (applies to `arc` / `minimal`). |
+| `number_animation`        | string  | `odometer`     | `odometer` or `reel` — both now render a continuous linear count. |
 | `show_current_as_primary` | boolean | `false`        | Emphasise the current temperature instead of the target. |
 | `secondary_controls`      | boolean | `true`         | Show the progressive "More controls" section. |
 | `appearance`              | string  | `auto`         | `auto` follows HA dark mode; `light` / `dark` force it. |
 | `theme`                   | string  | –              | Standard Home Assistant per-card theme override. |
 
-`auto` in `number_animation`/`thumb` is not a value — `auto` HVAC mode refers to
-the device's own automatic operation and is distinct from `heat_cool`.
+`dial_style` only affects the `full` display — the compact tile never draws a
+dial. Every style supports single and dual-setpoint (heat/cool) entities,
+`water_heater`, keyboard control and `show_current_as_primary`.
+
+All motion is linear and continuous: the readout tracks toward its target at a
+constant rate and never snaps, so during a drag the number trails the finger.
+Under `prefers-reduced-motion` values update instantly.
+
+`auto` in `thumb` is not a value — `auto` HVAC mode refers to the device's own
+automatic operation and is distinct from `heat_cool`.
 
 ### Examples
 
@@ -101,12 +110,20 @@ open_behavior: inline
 ```
 
 ```yaml
-# Full dial, whole-value reel animation, thumb always visible
+# Full display, graduated tick ring
 type: custom:custom-thermostat-card
 entity: climate.office
 display: full
-number_animation: reel
-thumb: always
+dial_style: ticks
+```
+
+```yaml
+# Full display, vertical thermometer, current temperature emphasised
+type: custom:custom-thermostat-card
+entity: climate.living_room
+display: full
+dial_style: thermometer
+show_current_as_primary: true
 ```
 
 ## Theming & card-mod

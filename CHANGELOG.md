@@ -4,6 +4,32 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-09-09
+
+### Added
+
+- `dial_style` option for the full display, with five looks: `arc` (the slim
+  horseshoe, unchanged default), `ticks` (graduated ring), `gradient` (fixed
+  cool→warm track with a bold setpoint knob), `thermometer` (vertical capsule,
+  no circle) and `minimal` (large number, hairline gauge). Every style
+  supports single and dual-setpoint entities, `water_heater`, the
+  unavailable state, keyboard control and `show_current_as_primary`. Selectable
+  from the visual editor.
+- `ticks`, `gradient` and `thermometer` draw a marker for the current
+  temperature on the track itself. New `part`s: `dial-tick`, `dial-current`.
+- Smoke test now exercises every dial style against every card variation and
+  runs in CI.
+
+### Changed
+
+- All motion is now linear and continuous. The number readout interpolates
+  toward its target at a constant rate (90–500 ms) and never snaps or
+  overshoots; if the target moves mid-animation (dragging the dial) the digits
+  simply keep tracking it. `--atc-ease` is `linear`. `number_animation`
+  (`odometer` / `reel`) is kept for compatibility but both now render the same
+  continuous count.
+- The horseshoe track is slimmer (8 px, was 14 px) with smaller thumbs.
+
 ## [0.1.3] - 2026-09-09
 
 ### Fixed

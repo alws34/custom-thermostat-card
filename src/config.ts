@@ -3,6 +3,15 @@ export type OpenBehavior = "overlay" | "inline";
 export type ThumbMode = "interaction" | "always" | "never";
 export type NumberAnimation = "odometer" | "reel";
 export type Appearance = "auto" | "light" | "dark";
+/**
+ * Look of the full-size control:
+ *  - `arc`         slim horseshoe progress arc (default, HA-like)
+ *  - `ticks`       graduated ring of tick marks (Nest-like)
+ *  - `gradient`    fixed cool→warm track with a single bold setpoint knob
+ *  - `thermometer` vertical capsule that fills to the setpoint, no circle
+ *  - `minimal`     large number, gauge reduced to a hairline
+ */
+export type DialStyle = "arc" | "ticks" | "gradient" | "thermometer" | "minimal";
 
 export interface ThermostatCardConfig {
   type: string;
@@ -10,6 +19,8 @@ export interface ThermostatCardConfig {
   name?: string;
   display: DisplayMode;
   open_behavior: OpenBehavior;
+  /** Look of the full-size control. */
+  dial_style: DialStyle;
   thumb: ThumbMode;
   number_animation: NumberAnimation;
   /** Show the current temperature as the prominent value instead of the target. */
@@ -24,6 +35,7 @@ export interface ThermostatCardConfig {
 export const DEFAULTS: Omit<ThermostatCardConfig, "type" | "entity" | "name" | "theme"> = {
   display: "compact",
   open_behavior: "overlay",
+  dial_style: "arc",
   thumb: "interaction",
   number_animation: "odometer",
   show_current_as_primary: false,
@@ -33,6 +45,7 @@ export const DEFAULTS: Omit<ThermostatCardConfig, "type" | "entity" | "name" | "
 
 const DISPLAY: DisplayMode[] = ["compact", "full"];
 const OPEN: OpenBehavior[] = ["overlay", "inline"];
+const DIAL_STYLE: DialStyle[] = ["arc", "ticks", "gradient", "thermometer", "minimal"];
 const THUMB: ThumbMode[] = ["interaction", "always", "never"];
 const ANIM: NumberAnimation[] = ["odometer", "reel"];
 const APPEARANCE: Appearance[] = ["auto", "light", "dark"];
@@ -67,6 +80,7 @@ export function normalizeConfig(raw: Record<string, unknown>): ThermostatCardCon
     name: typeof raw.name === "string" ? raw.name : undefined,
     display: pick(raw.display, DISPLAY, DEFAULTS.display),
     open_behavior: pick(raw.open_behavior, OPEN, DEFAULTS.open_behavior),
+    dial_style: pick(raw.dial_style, DIAL_STYLE, DEFAULTS.dial_style),
     thumb: pick(raw.thumb, THUMB, DEFAULTS.thumb),
     number_animation: pick(raw.number_animation, ANIM, DEFAULTS.number_animation),
     show_current_as_primary:

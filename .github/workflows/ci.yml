@@ -19,7 +19,8 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - run: node scripts/smoke.mjs
       - uses: actions/upload-artifact@v4
         with:
-          name: adaptive-thermostat-card
-          path: dist/adaptive-thermostat-card.js
+          name: custom-thermostat-card
+          path: dist/custom-thermostat-card.js

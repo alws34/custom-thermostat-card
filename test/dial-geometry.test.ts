@@ -3,6 +3,7 @@ import {
   ARC_SWEEP_DEG,
   arcLength,
   arcPath,
+  barFraction,
   fractionToValue,
   pointOnArc,
   pointerToFraction,
@@ -67,5 +68,14 @@ describe("dial geometry", () => {
 
   it("full horseshoe arc length is 270deg of the circle", () => {
     expect(arcLength(42)).toBeCloseTo((ARC_SWEEP_DEG / 360) * 2 * Math.PI * 42, 6);
+  });
+
+  it("thermometer bar fraction: top is max, bottom is min, clamped", () => {
+    expect(barFraction(0, 200)).toBe(1); // pointer at the top
+    expect(barFraction(200, 200)).toBe(0); // pointer at the bottom
+    expect(barFraction(50, 200)).toBeCloseTo(0.75, 5);
+    expect(barFraction(-40, 200)).toBe(1); // above the bar -> clamp
+    expect(barFraction(999, 200)).toBe(0); // below the bar -> clamp
+    expect(barFraction(10, 0)).toBe(0); // degenerate height
   });
 });

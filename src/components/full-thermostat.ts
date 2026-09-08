@@ -129,6 +129,7 @@ export class AtcFull extends LitElement {
           .locale=${this.locale}
           .animation=${this.config.number_animation}
           .thumb=${this.config.thumb}
+          .dialStyle=${this.config.dial_style}
           .activityColor=${color}
           .targetLabel=${m.targetLabel}
           .activityLabel=${m.activityLabel}

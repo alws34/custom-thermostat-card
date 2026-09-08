@@ -1,0 +1,325 @@
+<title>Thermostat Dial Directions</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ece9e2;
+    --card: #ffffff;
+    --ink: #1c1b19;
+    --ink-dim: #6b6862;
+    --line: rgba(0, 0, 0, 0.10);
+    --heat: #e8743b;
+    --cool: #2b8fe0;
+    --accent: #1c1b19;
+    --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.08);
+    font-synthesis: none;
+  }
+  :root[data-theme="dark"], :root:not([data-theme="light"]) {
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17161a;
+      --card: #211f24;
+      --ink: #f2f0ec;
+      --ink-dim: #a8a49c;
+      --line: rgba(255, 255, 255, 0.12);
+      --heat: #ff8a52;
+      --cool: #4aa8f0;
+      --accent: #f2f0ec;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17161a;
+    --card: #211f24;
+    --ink: #f2f0ec;
+    --ink-dim: #a8a49c;
+    --line: rgba(255, 255, 255, 0.12);
+    --heat: #ff8a52;
+    --cool: #4aa8f0;
+    --accent: #f2f0ec;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.5);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 18px;
+    padding: 18px 28px;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  header p { margin: 0; color: var(--ink-dim); font-size: 13px; }
+  header .spacer { flex: 1; }
+  .toggle {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 22px;
+    padding: 28px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .cell { display: flex; flex-direction: column; gap: 12px; }
+  .cell > h2 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .cell > p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-dim);
+    max-width: 40ch;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    padding: 22px 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .card .head .name { font-weight: 600; font-size: 15px; }
+  .card .head .sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 2px; }
+  .card .head .dots { color: var(--ink-dim); letter-spacing: 1px; }
+  .stage { display: flex; justify-content: center; padding: 2px 0; }
+
+  .modes {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .modes button {
+    font: inherit;
+    font-size: 13px;
+    border: none;
+    border-radius: 11px;
+    padding: 7px 13px;
+    background: var(--line);
+    color: var(--ink-dim);
+    cursor: pointer;
+  }
+  .modes button.on {
+    background: var(--heat);
+    color: #fff;
+  }
+
+  /* readout shared */
+  .rd-label {
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .rd-big {
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .rd-big sup {
+    font-size: 0.42em;
+    font-weight: 600;
+    top: -0.9em;
+    color: var(--ink-dim);
+    margin-left: 0.04em;
+  }
+  .rd-sub { font-size: 12.5px; color: var(--ink-dim); }
+
+  svg text { fill: var(--ink); }
+  svg .t-dim { fill: var(--ink-dim); }
+</style>
+
+<header>
+  <div>
+    <h1>Thermostat dial &mdash; four directions</h1>
+    <p>Same state throughout: heat to 22.0&deg;, currently 21.3&deg;, heating. Static mockups.</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="toggle" id="themeBtn">Toggle light / dark</button>
+</header>
+
+<main id="main"></main>
+
+<script>
+(function () {
+  const CX = 110, CY = 110, R = 88;
+  const START = 135, SWEEP = 270;
+  const setF = (22.0 - 7) / (35 - 7);      // setpoint fraction
+  const curF = (21.3 - 7) / (35 - 7);      // current temp fraction
+
+  const pt = (frac, r = R) => {
+    const a = (START + frac * SWEEP) * Math.PI / 180;
+    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+  };
+  const arc = (f0, f1, r = R) => {
+    const [x0, y0] = pt(f0, r), [x1, y1] = pt(f1, r);
+    const large = (f1 - f0) * SWEEP > 180 ? 1 : 0;
+    return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+  };
+
+  const readout = (big) => `
+    <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:3px;">
+      <span class="rd-label">Heat to</span>
+      <span class="rd-big" style="font-size:${big}px;">22.0<sup>&deg;C</sup></span>
+      <span class="rd-sub">21.3&deg; now &middot; Heating</span>
+    </div>`;
+
+  // ---- A: graduated tick ring ---------------------------------------
+  function tickRing() {
+    const N = 52;
+    let ticks = '';
+    for (let i = 0; i <= N; i++) {
+      const f = i / N;
+      const [x0, y0] = pt(f, R - 3);
+      const [x1, y1] = pt(f, R - 12);
+      const on = f <= setF + 1e-6;
+      const isCur = Math.abs(f - curF) < (0.5 / N);
+      const col = isCur ? 'var(--accent)' : on ? 'var(--heat)' : 'var(--line)';
+      const w = isCur ? 3.4 : 2.2;
+      const op = isCur ? 1 : on ? 0.95 : 1;
+      ticks += `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`;
+    }
+    return `<div style="position:relative; width:220px; height:220px;">
+      <svg viewBox="0 0 220 220" width="220" height="220">${ticks}</svg>
+      ${readout(36)}
+    </div>`;
+  }
+
+  // ---- B: gradient thermal track ----------------------------------
+  function gradientTrack() {
+    const [kx, ky] = pt(setF);
+    const [nx0, ny0] = pt(curF, R + 9);
+    const [nx1, ny1] = pt(curF, R - 9);
+    return `<div style="position:relative; width:220px; height:220px;">
+      <svg viewBox="0 0 220 220" width="220" height="220">
+        <defs>
+          <linearGradient id="thermal" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="var(--cool)"/>
+            <stop offset="0.5" stop-color="var(--ink-dim)"/>
+            <stop offset="1" stop-color="var(--heat)"/>
+          </linearGradient>
+        </defs>
+        <path d="${arc(0, 1)}" fill="none" stroke="url(#thermal)" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+        <line x1="${nx0.toFixed(1)}" y1="${ny0.toFixed(1)}" x2="${nx1.toFixed(1)}" y2="${ny1.toFixed(1)}" stroke="var(--ink-dim)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="13" fill="var(--card)" stroke="var(--heat)" stroke-width="4"/>
+        <circle cx="${kx.toFixed(1)}" cy="${ky.toFixed(1)}" r="4" fill="var(--heat)"/>
+      </svg>
+      ${readout(38)}
+    </div>`;
+  }
+
+  // ---- C: thermometer bar ---------------------------------------
+  function thermoBar() {
+    const H = 190, W = 30, x = 34, top = 15;
+    const fill = H * setF;
+    const cy = top + H * (1 - curF);
+    return `<div style="display:flex; align-items:center; gap:22px;">
+      <svg viewBox="0 0 110 220" width="120" height="220">
+        <rect x="${x}" y="${top}" width="${W}" height="${H}" rx="${W/2}" fill="var(--line)"/>
+        <rect x="${x}" y="${top + H - fill}" width="${W}" height="${fill}" rx="${W/2}" fill="var(--heat)"/>
+        <line x1="${x - 8}" y1="${cy.toFixed(1)}" x2="${x + W + 8}" y2="${cy.toFixed(1)}" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <span class="rd-label">Heat to</span>
+        <span class="rd-big" style="font-size:46px;">22.0<sup>&deg;C</sup></span>
+        <span class="rd-sub">21.3&deg; now &middot; Heating</span>
+      </div>
+    </div>`;
+  }
+
+  // ---- D: number-first, hairline ring --------------------------
+  function numberFirst() {
+    const HR = 104;
+    return `<div style="position:relative; width:250px; height:214px;">
+      <svg viewBox="0 0 250 214" width="250" height="214" style="position:absolute; inset:0;">
+        <g transform="translate(15,0)">
+          <path d="${arc(0, 1, HR)}" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+          <path d="${arc(0, setF, HR)}" fill="none" stroke="var(--heat)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="${pt(curF, HR)[0].toFixed(1)}" cy="${pt(curF, HR)[1].toFixed(1)}" r="2.4" fill="var(--ink-dim)"/>
+        </g>
+      </svg>
+      <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:2px;">
+        <span class="rd-label">Heat to</span>
+        <span class="rd-big" style="font-size:76px;">22.0<sup>&deg;</sup></span>
+        <span class="rd-sub">21.3&deg; now &middot; Heating</span>
+      </div>
+    </div>`;
+  }
+
+  const DIRECTIONS = [
+    ['Graduated tick ring', 'Solid arc becomes ~50 ticks. Min→setpoint pick up the activity colour; the current-temp tick is a bold dark mark. Tactile, and clearly not the HA arc.', tickRing],
+    ['Gradient thermal track', 'The full track is a fixed heat→cool gradient. One bold knob is the setpoint you drag; a thin notch is the current temp. No progress arc.', gradientTrack],
+    ['Thermometer bar', 'No circle at all. A capsule fills to the setpoint; a line marks current temp; the number sits beside it. Also solves the compact tile.', thermoBar],
+    ['Number-first, hairline ring', 'Typography is the control. The gauge drops to a hairline near the card edge. Big, quiet, editorial.', numberFirst],
+  ];
+
+  const main = document.getElementById('main');
+  main.innerHTML = DIRECTIONS.map(([title, desc, fn]) => `
+    <div class="cell">
+      <h2>${title}</h2>
+      <p>${desc}</p>
+      <div class="card">
+        <div class="head">
+          <div>
+            <div class="name">Living Room</div>
+            <div class="sub">Heating &middot; 21.3&deg; now</div>
+          </div>
+          <div class="dots">&bull;&bull;&bull;</div>
+        </div>
+        <div class="stage">${fn()}</div>
+        <div class="modes">
+          <button>Off</button><button class="on">Heat</button><button>Cool</button><button>Auto</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  const btn = document.getElementById('themeBtn');
+  btn.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : cur === 'light' ? 'dark'
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', next);
+  });
+})();
+</script>

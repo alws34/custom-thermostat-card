@@ -33,7 +33,8 @@ for (const [k, v] of Object.entries({
   HTMLElement: w.HTMLElement,
   customElements: w.customElements,
   CSSStyleSheet: FakeSheet,
-  requestAnimationFrame: (cb) => setTimeout(cb, 0),
+  requestAnimationFrame: (cb) => setTimeout(() => cb(Date.now()), 16),
+  cancelAnimationFrame: (id) => clearTimeout(id),
 })) {
   try {
     globalThis[k] = v;
@@ -42,6 +43,7 @@ for (const [k, v] of Object.entries({
   }
 }
 w.requestAnimationFrame = globalThis.requestAnimationFrame;
+w.cancelAnimationFrame = globalThis.cancelAnimationFrame;
 
 const mkEntity = (over = {}) => ({
   entity_id: "climate.lr",
@@ -91,28 +93,107 @@ assert(!!customElements.get("custom-thermostat-card-editor"), "editor element re
 assert(!!customElements.get("atc-dial"), "atc-dial registered");
 assert(Array.isArray(w.customCards) && w.customCards.length === 1, "card-picker entry pushed");
 
-for (const [name, cfg, states] of [
-  ["full/heat", { display: "full" }, { "climate.lr": mkEntity() }],
-  ["compact", { display: "compact" }, { "climate.lr": mkEntity() }],
-  [
-    "full/range",
-    { display: "full" },
-    {
-      "climate.lr": mkEntity({
-        state: "heat_cool",
-        attributes: { temperature: null, target_temp_low: 19.5, target_temp_high: 23 },
-      }),
-    },
-  ],
-  ["unavailable", { display: "full" }, { "climate.lr": mkEntity({ state: "unavailable" }) }],
-]) {
+// NOTE: mkEntity({attributes}) replaces the whole attributes object, so build
+// range / water variants by merging onto a base entity instead.
+const rangeEntity = () => {
+  const e = mkEntity();
+  e.state = "heat_cool";
+  e.attributes = {
+    ...e.attributes,
+    temperature: null,
+    target_temp_low: 19.5,
+    target_temp_high: 23,
+  };
+  return e;
+};
+const waterEntity = () => {
+  const e = mkEntity();
+  e.entity_id = "water_heater.tank";
+  e.state = "eco";
+  e.attributes = {
+    ...e.attributes,
+    friendly_name: "Tank",
+    current_temperature: 48,
+    temperature: 51,
+    min_temp: 43,
+    max_temp: 62,
+    operation_list: ["off", "eco", "electric"],
+    operation_mode: "eco",
+    supported_features: 1 | 2,
+  };
+  return e;
+};
+
+// reach into the rendered dial (full display only)
+const dialRoot = (card) =>
+  card.shadowRoot
+    ?.querySelector("atc-full")
+    ?.shadowRoot?.querySelector("atc-dial")?.shadowRoot ?? null;
+
+async function mount(cfg, states, entityId = "climate.lr") {
   const el = document.createElement("custom-thermostat-card");
-  el.setConfig({ type: "custom:custom-thermostat-card", entity: "climate.lr", ...cfg });
+  el.setConfig({ type: "custom:custom-thermostat-card", entity: entityId, ...cfg });
   el.hass = hass(states);
   document.body.appendChild(el);
   await new Promise((r) => setTimeout(r, 60));
+  return el;
+}
+
+for (const [name, cfg, states] of [
+  ["compact", { display: "compact" }, { "climate.lr": mkEntity() }],
+  ["compact/range", { display: "compact" }, { "climate.lr": rangeEntity() }],
+  ["full/unavailable", { display: "full" }, { "climate.lr": mkEntity({ state: "unavailable" }) }],
+]) {
+  const el = await mount(cfg, states);
   const text = el.shadowRoot.textContent.replace(/\s+/g, " ").trim();
-  assert(text.length > 0, `${name} renders ("${text.slice(0, 70)}")`);
+  assert(text.length > 0, `${name} renders ("${text.slice(0, 60)}")`);
+}
+
+// every dial style, against every card variation, must render
+const STYLES = ["arc", "ticks", "gradient", "thermometer", "minimal"];
+const VARIATIONS = [
+  ["single", () => ({ "climate.lr": mkEntity() }), "climate.lr", {}],
+  ["range", () => ({ "climate.lr": rangeEntity() }), "climate.lr", {}],
+  ["water_heater", () => ({ "water_heater.tank": waterEntity() }), "water_heater.tank", {}],
+  ["unavailable", () => ({ "climate.lr": mkEntity({ state: "unavailable" }) }), "climate.lr", {}],
+  ["current-primary", () => ({ "climate.lr": mkEntity() }), "climate.lr", { show_current_as_primary: true }],
+  ["thumb-never", () => ({ "climate.lr": mkEntity() }), "climate.lr", { thumb: "never" }],
+  ["reel", () => ({ "climate.lr": mkEntity() }), "climate.lr", { number_animation: "reel" }],
+];
+
+const featureCheck = {
+  arc: (r) => r.querySelector(".arc"),
+  ticks: (r) => r.querySelectorAll(".tick").length > 12,
+  gradient: (r) => /url\(#atc-thermal\)/.test(r.innerHTML) && /atc-thermal/.test(r.innerHTML),
+  thermometer: (r) => r.querySelector(".bar-track") && r.querySelector(".thermo"),
+  minimal: (r) => r.host.getAttribute("dial-style") === "minimal" && r.querySelector(".arc"),
+};
+
+for (const style of STYLES) {
+  for (const [vname, mkStates, entityId, extra] of VARIATIONS) {
+    const el = await mount({ display: "full", dial_style: style, ...extra }, mkStates(), entityId);
+    const text = el.shadowRoot.textContent.replace(/\s+/g, " ").trim();
+    const root = dialRoot(el);
+    assert(!!root && text.length > 0, `${style}/${vname} renders`);
+    if (root) assert(!!featureCheck[style](root), `${style}/${vname} draws its ${style} layer`);
+    if (root && vname === "range") {
+      const slots = root.querySelectorAll(".range-readout .slot");
+      assert(slots.length === 2, `${style}/range shows both setpoint buttons`);
+    }
+  }
+}
+
+// linear/continuous readout: value change settles on the target, no NaN
+{
+  const el = await mount({ display: "full" }, { "climate.lr": mkEntity() });
+  const num = dialRoot(el)?.querySelector("atc-number");
+  assert(!!num, "atc-number present in dial");
+  if (num) {
+    num.value = 25;
+    await new Promise((r) => setTimeout(r, 300));
+    const shown = num.shadowRoot.querySelector(".sr-only").textContent;
+    assert(/^25(\.0)?°/.test(shown), `atc-number reaches the target ("${shown}")`);
+  }
 }
 
 // setConfig error path

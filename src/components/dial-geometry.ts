@@ -59,3 +59,13 @@ export function arcPath(f0: number, f1: number, cx: number, cy: number, r: numbe
 export function arcLength(r: number): number {
   return (ARC_SWEEP_DEG / 360) * 2 * Math.PI * r;
 }
+
+/**
+ * Vertical fraction for the thermometer style: `offsetY` is the pointer's
+ * position from the top of the bar track, `height` the track height.
+ * Top of the bar is fraction 1 (max), bottom is fraction 0 (min).
+ */
+export function barFraction(offsetY: number, height: number): number {
+  if (height <= 0) return 0;
+  return clamp01(1 - offsetY / height);
+}

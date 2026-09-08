@@ -28,12 +28,13 @@ export const tokens = css`
 
     /* dial */
     --atc-track: var(--atc-divider);
-    --atc-track-width: 14px;
+    --atc-track-width: 8px;
     --atc-dial-size: 220px;
 
-    /* motion */
-    --atc-roll-duration: 340ms;
-    --atc-ease: cubic-bezier(0.34, 0.9, 0.3, 1);
+    /* motion — deliberately linear: every value change tracks continuously,
+       nothing eases or overshoots (see animated-temperature) */
+    --atc-roll-duration: 320ms;
+    --atc-ease: linear;
   }
 
   :host([data-appearance="dark"]) {

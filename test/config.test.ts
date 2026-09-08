@@ -29,6 +29,14 @@ describe("config", () => {
     expect(c.open_behavior).toBe("inline");
   });
 
+  it("dial_style defaults to arc, keeps valid values, rejects unknown", () => {
+    expect(normalizeConfig({ entity: "climate.lr" }).dial_style).toBe("arc");
+    for (const style of ["arc", "ticks", "gradient", "thermometer", "minimal"]) {
+      expect(normalizeConfig({ entity: "climate.lr", dial_style: style }).dial_style).toBe(style);
+    }
+    expect(normalizeConfig({ entity: "climate.lr", dial_style: "horseshoe" }).dial_style).toBe("arc");
+  });
+
   it("preserves unknown keys for editor round-trips", () => {
     const c = normalizeConfig({ entity: "climate.lr", grid_options: { columns: 6 } }) as unknown as Record<
       string,

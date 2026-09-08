@@ -48,7 +48,17 @@ export class CustomThermostatCardEditor extends LitElement implements LovelaceCa
               selector: { select: { mode: "box", options: opts(["overlay", "inline"]) } },
             },
           ]
-        : []),
+        : [
+            {
+              name: "dial_style",
+              selector: {
+                select: {
+                  mode: "dropdown",
+                  options: opts(["arc", "ticks", "gradient", "thermometer", "minimal"]),
+                },
+              },
+            },
+          ]),
       {
         type: "grid",
         name: "",
@@ -76,6 +86,7 @@ export class CustomThermostatCardEditor extends LitElement implements LovelaceCa
       name: "Name (optional)",
       display: "Display",
       open_behavior: "Compact open behavior",
+      dial_style: "Dial style",
       thumb: "Dial thumb",
       number_animation: "Number animation",
       appearance: "Appearance",
@@ -110,7 +121,10 @@ export class CustomThermostatCardEditor extends LitElement implements LovelaceCa
           </div>`
         : nothing}
       ${(this.config.display ?? "compact") === "full"
-        ? html`<div class="note">Full display always shows the horseshoe; the compact open behavior does not apply.</div>`
+        ? html`<div class="note">
+            The dial style applies to the full display. The compact tile never draws a dial, so
+            it and the open behavior only apply to the compact display.
+          </div>`
         : nothing}
     `;
   }
