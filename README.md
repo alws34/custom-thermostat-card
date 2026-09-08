@@ -5,6 +5,12 @@ An Apple-Home–inspired thermostat card for Home Assistant Lovelace. It is
 light/dark mode, colours, radius and shadows. Works with `climate` and
 `water_heater` entities.
 
+![Custom Thermostat Card — light theme](docs/preview-light.png)
+
+![Custom Thermostat Card — Neumorphism dark theme](docs/preview-dark.png)
+
+<sub>Screens from the bundled browser preview (`npm run preview`): compact tiles, the full horseshoe, dual-setpoint, water heater, and the thumb modes.</sub>
+
 - **Adaptive compact tile** — square at narrow grid widths, horizontal when
   wider, with persistent `▲` / `▼` steppers. Never a shrunken dial.
 - **Full horseshoe dial** — draggable by pointer, touch, stylus and keyboard.
