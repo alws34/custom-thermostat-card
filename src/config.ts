@@ -51,18 +51,18 @@ const SUPPORTED_DOMAINS = ["climate", "water_heater"];
 export function normalizeConfig(raw: Record<string, unknown>): ThermostatCardConfig {
   const entity = raw.entity;
   if (typeof entity !== "string" || !entity.includes(".")) {
-    throw new Error("adaptive-thermostat-card: `entity` is required (a climate or water_heater entity id).");
+    throw new Error("custom-thermostat-card: `entity` is required (a climate or water_heater entity id).");
   }
   const domain = entity.split(".")[0];
   if (!SUPPORTED_DOMAINS.includes(domain)) {
     throw new Error(
-      `adaptive-thermostat-card: entity domain "${domain}" is not supported. Use a climate or water_heater entity.`,
+      `custom-thermostat-card: entity domain "${domain}" is not supported. Use a climate or water_heater entity.`,
     );
   }
 
   return {
     ...raw,
-    type: typeof raw.type === "string" ? raw.type : "custom:adaptive-thermostat-card",
+    type: typeof raw.type === "string" ? raw.type : "custom:custom-thermostat-card",
     entity,
     name: typeof raw.name === "string" ? raw.name : undefined,
     display: pick(raw.display, DISPLAY, DEFAULTS.display),
@@ -81,5 +81,5 @@ export function normalizeConfig(raw: Record<string, unknown>): ThermostatCardCon
 }
 
 export function stubConfig(entity = "climate.example"): Record<string, unknown> {
-  return { type: "custom:adaptive-thermostat-card", entity, ...DEFAULTS };
+  return { type: "custom:custom-thermostat-card", entity, ...DEFAULTS };
 }

@@ -107,7 +107,7 @@ export class AtcFull extends LitElement {
                 <div class="title">${m.name}</div>
                 <div class="status" part="status">
                   ${m.activityLabel}${m.current != null
-                    ? html` · ${this.fmt(m.current)}° ${this.nowWord()}`
+                    ? html` · ${this.fmt(m.current)}°${m.unit.replace("°", "").trim()} ${this.nowWord()}`
                     : nothing}
                 </div>
               </div>

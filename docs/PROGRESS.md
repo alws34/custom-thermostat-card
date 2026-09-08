@@ -22,8 +22,8 @@ deep-links.
 
 ```
 src/
-  adaptive-thermostat-card.ts         card lifecycle, display-mode routing, grid options
-  adaptive-thermostat-card-editor.ts  ha-form based, capability-aware
+  custom-thermostat-card.ts         card lifecycle, display-mode routing, grid options
+  custom-thermostat-card-editor.ts  ha-form based, capability-aware
   config.ts                           types, defaults, validation, unknown-key preservation
   model/
     adapter.ts                        NormalizedThermostat contract + shared helpers
@@ -64,6 +64,23 @@ HA-light and Neumorphism-dark, all 12 preview cells: compact narrow/wide,
 compact inline, dual-setpoint compact, full heat/cool/range/water-heater/
 unavailable, thumb always/never, editor. Renders correctly in both.
 
+## Session 2 changes (user review)
+
+- Fixed dial arc "going haywire" on drag — removed the CSS `transition` on the
+  SVG `d` (browser can't interpolate an arc across large-arc/sweep flag flips).
+- Reverted the "snap instead of roll during drag" tweak — numbers roll and
+  trail the finger again.
+- **Dual-setpoint dial rebuilt to match HA's built-in `ha-control-circular-slider`
+  dual mode** (verified against frontend source): heat arc bottom→low handle,
+  cool arc high handle→top, dim comfort zone between, both handles shown, the
+  two centre numbers are the tap-to-select control (no separate hot/cold button).
+  Dropped the invented heat→cool gradient band.
+- Removed the grey background chip behind the selected range value (was
+  spilling past the dial). Opacity-only selection now, like HA.
+- Added an explicit °C / °F indicator to every temperature readout. Unit still
+  comes only from HA (`hass.config.unit_system.temperature`), never a card option.
+- Preview: added a Unit °C/°F switch + realistic °F fixtures (`?unit=F`).
+
 ## Known gaps / next choices for you
 
 1. **API verification not yet done against live HA docs.** `swing_horizontal_mode`
@@ -71,8 +88,8 @@ unavailable, thumb always/never, editor. Renders correctly in both.
    memory — worth confirming before release. Handoff step 3.
 2. **HACS packaging rules** likewise coded from current knowledge, not
    re-verified against HACS docs. Handoff step 3.
-3. **Naming** still provisional: element `adaptive-thermostat-card`
-   (`custom:adaptive-thermostat-card`), repo `thermostat-card`. Not locked with
+3. **Naming** still provisional: element `custom-thermostat-card`
+   (`custom:custom-thermostat-card`), repo `thermostat-card`. Not locked with
    you yet. No GitHub remote created.
 4. **Real HA preview** (Docker, dummy entities) from
    `numorphism/preview/README.md` — not built yet; the standalone harness
@@ -87,5 +104,5 @@ unavailable, thumb always/never, editor. Renders correctly in both.
 
 ## Running it in your HA now
 
-`npm run build` → copy `dist/adaptive-thermostat-card.js` to `config/www/`,
-add the resource, add a `type: custom:adaptive-thermostat-card` card.
+`npm run build` → copy `dist/custom-thermostat-card.js` to `config/www/`,
+add the resource, add a `type: custom:custom-thermostat-card` card.

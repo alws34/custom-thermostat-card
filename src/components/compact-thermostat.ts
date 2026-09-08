@@ -74,6 +74,15 @@ export class AtcCompact extends LitElement {
       font-size: 2rem;
       font-weight: 550;
       letter-spacing: -0.03em;
+      display: inline-flex;
+      align-items: flex-start;
+    }
+    .readout .big .unit {
+      font-size: 0.45em;
+      font-weight: 600;
+      color: var(--atc-text-secondary);
+      margin-top: 0.5em;
+      margin-left: 0.06em;
     }
     .readout .cap {
       font-size: 0.7rem;
@@ -93,11 +102,12 @@ export class AtcCompact extends LitElement {
       padding: 4px 8px;
       cursor: pointer;
       font: inherit;
+      opacity: 0.55;
     }
     .range button.sel {
+      opacity: 1;
       color: var(--atc-text);
       border-color: var(--activity, var(--atc-idle));
-      background: var(--atc-track);
     }
     .range button small {
       display: block;
@@ -183,7 +193,7 @@ export class AtcCompact extends LitElement {
           <div class="name">${m.name}</div>
           <div class="status" part="status">
             <span class="dot"></span>${m.activityLabel}${m.current != null
-              ? html` · ${this.fmt(m.current)}°`
+              ? html` · ${this.fmt(m.current)}°${this.unitLetter}`
               : nothing}
           </div>
           ${m.modes.length
@@ -235,7 +245,8 @@ export class AtcCompact extends LitElement {
             .locale=${this.locale}
             .animation=${this.config.number_animation}
           ></atc-number
-        ></span>
+          >${this.unitLetter ? html`<span class="unit">${this.unitLetter}</span>` : nothing}</span
+        >
         <span class="cap">${this.model.targetLabel}</span>
       </div>
     `;
@@ -285,6 +296,11 @@ export class AtcCompact extends LitElement {
       maximumFractionDigits: this.model.precision,
       useGrouping: false,
     });
+  }
+
+  /** "C" / "F" — the temperature scale from Home Assistant, shown on-card */
+  private get unitLetter(): string {
+    return (this.model.unit || "").replace("°", "").trim();
   }
 }
 

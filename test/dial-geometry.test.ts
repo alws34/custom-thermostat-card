@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ARC_SWEEP_DEG,
   arcLength,
+  arcPath,
   fractionToValue,
   pointOnArc,
   pointerToFraction,
@@ -43,6 +44,25 @@ describe("dial geometry", () => {
     // just past the end tip (slightly clockwise into the gap) -> 1
     const nearEnd = pointOnArc(1, 0, 0, 42);
     expect(pointerToFraction(nearEnd.x + 2, nearEnd.y + 3)).toBe(1);
+  });
+
+  it("arc path large-arc flag flips exactly at the half-sweep, sweep is always clockwise", () => {
+    // below half the sweep -> minor arc (flag 0); above -> major arc (flag 1)
+    const short = arcPath(0, 0.6, 50, 50, 42).split(" ");
+    const long = arcPath(0, 0.8, 50, 50, 42).split(" ");
+    // "M x y A rx ry rot large sweep x y"
+    expect(short[7]).toBe("0");
+    expect(short[8]).toBe("1");
+    expect(long[7]).toBe("1");
+    expect(long[8]).toBe("1");
+    // endpoints stay inside a sane box (no radius inflation / offset)
+    for (const f of [0, 0.2, 0.5, 0.75, 1]) {
+      const p = pointOnArc(f, 50, 50, 42);
+      expect(p.x).toBeGreaterThan(2);
+      expect(p.x).toBeLessThan(98);
+      expect(p.y).toBeGreaterThan(2);
+      expect(p.y).toBeLessThan(98);
+    }
   });
 
   it("full horseshoe arc length is 270deg of the circle", () => {

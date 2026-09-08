@@ -78,7 +78,9 @@ export class AtcDial extends LitElement {
       stroke: var(--atc-arc-color, currentColor);
       stroke-width: var(--atc-track-width, 14);
       stroke-linecap: round;
-      transition: d var(--atc-roll-duration, 340ms) var(--atc-ease, ease);
+      /* deliberately no transition on the d attribute: the browser cannot
+         interpolate an SVG arc when the large-arc / sweep flags flip mid-drag
+         and renders wild shapes. The arc must track the finger exactly. */
     }
     .hit {
       fill: none;
@@ -111,6 +113,15 @@ export class AtcDial extends LitElement {
       font-weight: 500;
       letter-spacing: -0.04em;
       color: var(--atc-text);
+      display: inline-flex;
+      align-items: flex-start;
+    }
+    .readout .unit {
+      font-size: 0.4em;
+      font-weight: 600;
+      color: var(--atc-text-secondary);
+      margin-top: 0.55em;
+      margin-left: 0.08em;
     }
     .sub {
       font-size: 0.75rem;
@@ -118,17 +129,28 @@ export class AtcDial extends LitElement {
     }
     .range-readout {
       display: flex;
-      gap: 0.6rem;
-      align-items: center;
+      gap: 0.9rem;
+      align-items: baseline;
+      pointer-events: auto;
     }
+    /* HA-native treatment: opacity only, no background chip */
     .range-readout .slot {
-      padding: 0.2rem 0.4rem;
-      border-radius: 0.5rem;
-      opacity: 0.55;
+      border: none;
+      background: none;
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 160ms ease;
     }
     .range-readout .slot.sel {
       opacity: 1;
-      background: var(--atc-track);
+    }
+    .range-readout .slot:focus-visible {
+      outline: none;
+      opacity: 1;
+      transform: scale(1.06);
     }
     .range-readout .slot small {
       display: block;
@@ -137,8 +159,9 @@ export class AtcDial extends LitElement {
       letter-spacing: 0.08em;
     }
     .range-readout .slot .v {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 500;
+      letter-spacing: -0.03em;
     }
     .thumb {
       fill: var(--atc-surface);
@@ -209,7 +232,20 @@ export class AtcDial extends LitElement {
     }
     ev.preventDefault();
     const [cx, cy] = this.center();
-    const f = pointerToFraction(ev.clientX - cx, ev.clientY - cy);
+    let f = pointerToFraction(ev.clientX - cx, ev.clientY - cy);
+
+    // in range mode keep the dragged endpoint on its own side of the other
+    if (this.range) {
+      const span = this.max - this.min;
+      const gap = span > 0 ? this.step / span : 0;
+      if (this.activeSlot === "low") {
+        f = Math.min(f, valueToFraction(this.high ?? this.max, this.min, this.max) - gap);
+      } else if (this.activeSlot === "high") {
+        f = Math.max(f, valueToFraction(this.low ?? this.min, this.min, this.max) + gap);
+      }
+      f = Math.min(1, Math.max(0, f));
+    }
+
     const raw = fractionToValue(f, this.min, this.max);
     this.dispatchEvent(
       new CustomEvent<DialChange>("dial-preview", { detail: { value: raw, slot: this.activeSlot } }),
@@ -294,32 +330,31 @@ export class AtcDial extends LitElement {
     `;
   }
 
+  /**
+   * Dual-setpoint arcs, matching Home Assistant's built-in
+   * ha-control-circular-slider `dual` mode: the heat arc runs from the low
+   * tip up to the low handle, the cool arc from the high handle up to the
+   * high tip, and the comfort window between stays on the plain track.
+   */
   private renderRangeArcs() {
     const fl = valueToFraction(this.low ?? this.min, this.min, this.max);
     const fh = valueToFraction(this.high ?? this.max, this.min, this.max);
     const pl = pointOnArc(fl, CX, CY, R);
     const ph = pointOnArc(fh, CX, CY, R);
-    const gradId = `atc-range-${this.entKey}`;
+    const heat = this.disabled ? "var(--atc-idle)" : "var(--atc-heat)";
+    const cool = this.disabled ? "var(--atc-idle)" : "var(--atc-cool)";
     return svg`
-      <defs>
-        <linearGradient id=${gradId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="var(--atc-heat)" />
-          <stop offset="1" stop-color="var(--atc-cool)" />
-        </linearGradient>
-      </defs>
-      <path class="arc" part="dial-arc" style=${`stroke: url(#${gradId})`}
-        d=${arcPath(Math.min(fl, fh), Math.max(fl, fh), CX, CY, R)} />
+      <path class="arc" part="dial-arc" style=${`stroke:${heat}`}
+        d=${arcPath(0, Math.max(fl, 0.001), CX, CY, R)} />
+      <path class="arc" part="dial-arc" style=${`stroke:${cool}`}
+        d=${arcPath(Math.min(fh, 0.999), 1, CX, CY, R)} />
       <circle class="thumb" part="dial-thumb"
-        style="stroke: var(--atc-heat)" cx=${pl.x} cy=${pl.y}
-        r=${this.selectedSlot === "low" ? 5.5 : 4} />
+        style=${`stroke:${heat}`} cx=${pl.x} cy=${pl.y}
+        r=${this.selectedSlot === "low" ? 6 : 4.5} />
       <circle class="thumb" part="dial-thumb"
-        style="stroke: var(--atc-cool)" cx=${ph.x} cy=${ph.y}
-        r=${this.selectedSlot === "high" ? 5.5 : 4} />
+        style=${`stroke:${cool}`} cx=${ph.x} cy=${ph.y}
+        r=${this.selectedSlot === "high" ? 6 : 4.5} />
     `;
-  }
-
-  private get entKey(): string {
-    return (this.targetLabel || "r").replace(/\W/g, "") + Math.round((this.low ?? 0) + (this.high ?? 0));
   }
 
   private renderCenter() {
@@ -327,8 +362,10 @@ export class AtcDial extends LitElement {
       return html`
         <span class="label">${this.targetLabel}</span>
         <div class="range-readout">
-          <span
+          <button
+            type="button"
             class="slot ${this.selectedSlot === "low" ? "sel" : ""}"
+            aria-pressed=${this.selectedSlot === "low"}
             @click=${() => this.dispatchEvent(new CustomEvent("slot-select", { detail: { slot: "low" } }))}
           >
             <small style="color:var(--atc-heat)">Heat</small>
@@ -340,9 +377,11 @@ export class AtcDial extends LitElement {
                 .animation=${this.animation}
               ></atc-number
             ></span>
-          </span>
-          <span
+          </button>
+          <button
+            type="button"
             class="slot ${this.selectedSlot === "high" ? "sel" : ""}"
+            aria-pressed=${this.selectedSlot === "high"}
             @click=${() => this.dispatchEvent(new CustomEvent("slot-select", { detail: { slot: "high" } }))}
           >
             <small style="color:var(--atc-cool)">Cool</small>
@@ -354,7 +393,7 @@ export class AtcDial extends LitElement {
                 .animation=${this.animation}
               ></atc-number
             ></span>
-          </span>
+          </button>
         </div>
         ${this.current != null
           ? html`<span class="sub">${this.fmtNum(this.current)}${this.unitShort()} ${this.nowLabel()}</span>`
@@ -370,7 +409,8 @@ export class AtcDial extends LitElement {
           .locale=${this.locale}
           .animation=${this.animation}
         ></atc-number
-      ></span>
+        >${this.unitLetter ? html`<span class="unit">${this.unitLetter}</span>` : nothing}</span
+      >
       ${this.current != null
         ? html`<span class="sub">${this.activityLabel} · ${this.fmtNum(this.current)}${this.unitShort()}</span>`
         : this.activityLabel
@@ -382,8 +422,12 @@ export class AtcDial extends LitElement {
   private nowLabel() {
     return "now";
   }
+  /** "C" / "F" — the temperature scale, for an explicit on-card indicator */
+  private get unitLetter(): string {
+    return (this.unit || "").replace("°", "").trim();
+  }
   private unitShort() {
-    return "°";
+    return `°${this.unitLetter}`;
   }
   private fmtNum(n: number) {
     return n.toLocaleString(this.locale, {

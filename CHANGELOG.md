@@ -9,7 +9,7 @@ All notable changes to this project are documented here. The format follows
 ### Added
 
 - Initial implementation.
-  - Self-contained Lit web component (`custom:adaptive-thermostat-card`) plus visual editor.
+  - Self-contained Lit web component (`custom:custom-thermostat-card`) plus visual editor.
   - `climate` and `water_heater` support through separate domain adapters.
   - Three display modes: compact → overlay, compact → inline, full horseshoe.
   - Adaptive compact tile (square ⇄ horizontal) with persistent ▲ / ▼ steppers.

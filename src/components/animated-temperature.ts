@@ -74,6 +74,8 @@ export class AtcNumber extends LitElement {
     if (changed.has("value")) {
       const old = changed.get("value");
       if (typeof old === "number" && old !== this.value) {
+        // roll on every change, including during a drag — the digits should
+        // chase the finger. CSS transitions retarget cleanly when interrupted.
         this.from = old;
         this.phase = "start";
         this.setAttribute("data-phase", "start");

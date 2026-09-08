@@ -1,4 +1,4 @@
-# Example Lovelace views for adaptive-thermostat-card.
+# Example Lovelace views for custom-thermostat-card.
 # Copy the blocks you need into your own dashboard.
 
 views:
@@ -8,34 +8,34 @@ views:
       - type: grid
         cards:
           # 1. Adaptive compact tile that opens the full control in an overlay
-          - type: custom:adaptive-thermostat-card
+          - type: custom:custom-thermostat-card
             entity: climate.living_room
 
           # 2. Adaptive compact tile that expands inline
-          - type: custom:adaptive-thermostat-card
+          - type: custom:custom-thermostat-card
             entity: climate.bedroom
             display: compact
             open_behavior: inline
 
           # 3. Full horseshoe from the start
-          - type: custom:adaptive-thermostat-card
+          - type: custom:custom-thermostat-card
             entity: climate.office
             display: full
             name: Office AC
 
           # 4. Dual-setpoint (heat/cool) thermostat, reel animation
-          - type: custom:adaptive-thermostat-card
+          - type: custom:custom-thermostat-card
             entity: climate.hallway
             display: full
             number_animation: reel
 
           # 5. Water heater
-          - type: custom:adaptive-thermostat-card
+          - type: custom:custom-thermostat-card
             entity: water_heater.tank
             display: full
 
           # 6. card-mod: recolour the active arc and enlarge the readout
-          - type: custom:adaptive-thermostat-card
+          - type: custom:custom-thermostat-card
             entity: climate.living_room
             display: full
             card_mod:

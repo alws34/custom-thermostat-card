@@ -12,7 +12,7 @@ describe("config", () => {
     const c = normalizeConfig({ entity: "climate.lr" });
     expect(c).toMatchObject(DEFAULTS);
     expect(c.entity).toBe("climate.lr");
-    expect(c.type).toBe("custom:adaptive-thermostat-card");
+    expect(c.type).toBe("custom:custom-thermostat-card");
   });
 
   it("keeps valid overrides and rejects bad enum values", () => {

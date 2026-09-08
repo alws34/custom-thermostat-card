@@ -8,7 +8,7 @@ const dir = new URL("../preview/", import.meta.url);
 const [indexHtml, harness, bundle] = await Promise.all([
   readFile(new URL("index.html", dir), "utf8"),
   readFile(new URL("preview.mjs", dir), "utf8"),
-  readFile(new URL("../dist/adaptive-thermostat-card.js", import.meta.url), "utf8"),
+  readFile(new URL("../dist/custom-thermostat-card.js", import.meta.url), "utf8"),
 ]);
 
 // escape any sequence that would prematurely close the inline <script>
@@ -18,7 +18,7 @@ const forScript = (js) => js.replace(/<\/(script)/gi, "<\\/$1").replace(/<!--/g,
 // replacement would interpret as match-group references
 const inlined = indexHtml
   .replace(
-    '<script type="module" src="../dist/adaptive-thermostat-card.js"></script>',
+    '<script type="module" src="../dist/custom-thermostat-card.js"></script>',
     () => `<script type="module">\n${forScript(bundle)}\n</script>`,
   )
   .replace(

@@ -110,13 +110,19 @@
   </head>
   <body>
     <header>
-      <h1>Adaptive Thermostat Card</h1>
+      <h1>Custom Thermostat Card</h1>
       <label>Theme
         <select id="theme">
           <option value="t-ha-light">HA Light</option>
           <option value="t-ha-dark">HA Dark</option>
           <option value="t-neu-light">Neumorphism Light</option>
           <option value="t-neu-dark">Neumorphism Dark</option>
+        </select>
+      </label>
+      <label>Unit
+        <select id="unit">
+          <option value="C">°C</option>
+          <option value="F">°F</option>
         </select>
       </label>
       <label><input type="checkbox" id="reduce" /> Reduced motion</label>
@@ -126,7 +132,7 @@
     <main id="gallery"></main>
     <div class="toast" id="toast"></div>
 
-    <script type="module" src="../dist/adaptive-thermostat-card.js"></script>
+    <script type="module" src="../dist/custom-thermostat-card.js"></script>
     <script type="module" src="./preview.mjs"></script>
   </body>
 </html>

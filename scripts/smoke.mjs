@@ -79,15 +79,15 @@ const hass = (states) => ({
   callService: async (d, s, data) => console.log("  service:", d, s, JSON.stringify(data)),
 });
 
-await import("../dist/adaptive-thermostat-card.js");
+await import("../dist/custom-thermostat-card.js");
 let failed = false;
 const assert = (cond, msg) => {
   console.log(`${cond ? "ok  " : "FAIL"} ${msg}`);
   if (!cond) failed = true;
 };
 
-assert(!!customElements.get("adaptive-thermostat-card"), "card element registered");
-assert(!!customElements.get("adaptive-thermostat-card-editor"), "editor element registered");
+assert(!!customElements.get("custom-thermostat-card"), "card element registered");
+assert(!!customElements.get("custom-thermostat-card-editor"), "editor element registered");
 assert(!!customElements.get("atc-dial"), "atc-dial registered");
 assert(Array.isArray(w.customCards) && w.customCards.length === 1, "card-picker entry pushed");
 
@@ -106,8 +106,8 @@ for (const [name, cfg, states] of [
   ],
   ["unavailable", { display: "full" }, { "climate.lr": mkEntity({ state: "unavailable" }) }],
 ]) {
-  const el = document.createElement("adaptive-thermostat-card");
-  el.setConfig({ type: "custom:adaptive-thermostat-card", entity: "climate.lr", ...cfg });
+  const el = document.createElement("custom-thermostat-card");
+  el.setConfig({ type: "custom:custom-thermostat-card", entity: "climate.lr", ...cfg });
   el.hass = hass(states);
   document.body.appendChild(el);
   await new Promise((r) => setTimeout(r, 60));
@@ -117,7 +117,7 @@ for (const [name, cfg, states] of [
 
 // setConfig error path
 try {
-  document.createElement("adaptive-thermostat-card").setConfig({ entity: "light.x" });
+  document.createElement("custom-thermostat-card").setConfig({ entity: "light.x" });
   assert(false, "rejects unsupported domain");
 } catch {
   assert(true, "rejects unsupported domain");

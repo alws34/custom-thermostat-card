@@ -1,4 +1,4 @@
-# Adaptive Thermostat Card
+# Custom Thermostat Card
 
 An Apple-Home–inspired thermostat card for Home Assistant Lovelace. It is
 **generic and theme-driven** — Home Assistant stays the source of truth for
@@ -28,34 +28,34 @@ light/dark mode, colours, radius and shadows. Works with `climate` and
 ### HACS (custom repository)
 
 1. HACS → **⋮** → **Custom repositories**.
-2. Add `https://github.com/alws34/thermostat-card` with category **Lovelace**.
-3. Install **Adaptive Thermostat Card**.
+2. Add `https://github.com/alws34/custom-thermostat-card` with category **Lovelace**.
+3. Install **Custom Thermostat Card**.
 4. HACS adds the dashboard resource automatically. If you manage resources
    manually, add:
 
    ```yaml
-   url: /hacsfiles/thermostat-card/adaptive-thermostat-card.js
+   url: /hacsfiles/custom-thermostat-card/custom-thermostat-card.js
    type: module
    ```
 
 ### Manual
 
-1. Download `adaptive-thermostat-card.js` from the
-   [latest release](https://github.com/alws34/thermostat-card/releases).
+1. Download `custom-thermostat-card.js` from the
+   [latest release](https://github.com/alws34/custom-thermostat-card/releases).
 2. Copy it to `<config>/www/`.
 3. Settings → Dashboards → **⋮** → Resources → **Add resource**:
 
    ```yaml
-   url: /local/adaptive-thermostat-card.js
+   url: /local/custom-thermostat-card.js
    type: module
    ```
 
 ## Configuration
 
-Add the card from the picker ("Adaptive Thermostat Card") or in YAML:
+Add the card from the picker ("Custom Thermostat Card") or in YAML:
 
 ```yaml
-type: custom:adaptive-thermostat-card
+type: custom:custom-thermostat-card
 entity: climate.living_room
 ```
 
@@ -87,7 +87,7 @@ See [`examples/dashboard.yaml`](examples/dashboard.yaml). A few:
 
 ```yaml
 # Compact tile, expands inline
-type: custom:adaptive-thermostat-card
+type: custom:custom-thermostat-card
 entity: climate.bedroom
 display: compact
 open_behavior: inline
@@ -95,7 +95,7 @@ open_behavior: inline
 
 ```yaml
 # Full dial, whole-value reel animation, thumb always visible
-type: custom:adaptive-thermostat-card
+type: custom:custom-thermostat-card
 entity: climate.office
 display: full
 number_animation: reel
@@ -132,7 +132,7 @@ fallbacks. It does **not** require the Neumorphism theme or card-mod.
 ### card-mod example
 
 ```yaml
-type: custom:adaptive-thermostat-card
+type: custom:custom-thermostat-card
 entity: climate.living_room
 display: full
 card_mod:
@@ -162,7 +162,7 @@ card_mod:
 
 ```bash
 npm install
-npm run build        # dist/adaptive-thermostat-card.js
+npm run build        # dist/custom-thermostat-card.js
 npm test             # vitest: config, adapters, controller, geometry
 npm run typecheck
 npm run lint
@@ -178,7 +178,7 @@ RTL. `node scripts/build-preview.mjs` inlines everything into
 
 1. Update `CHANGELOG.md` and bump `version` in `package.json`.
 2. `git tag vX.Y.Z && git push --tags`.
-3. The **Release** workflow builds and attaches `adaptive-thermostat-card.js`
+3. The **Release** workflow builds and attaches `custom-thermostat-card.js`
    to the GitHub release; HACS serves that asset.
 
 ## License

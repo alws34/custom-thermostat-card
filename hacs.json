@@ -1,6 +1,6 @@
 {
-  "name": "Adaptive Thermostat Card",
-  "filename": "adaptive-thermostat-card.js",
+  "name": "Custom Thermostat Card",
+  "filename": "custom-thermostat-card.js",
   "render_readme": true,
   "homeassistant": "2024.8.0"
 }

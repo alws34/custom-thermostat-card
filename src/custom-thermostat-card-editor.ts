@@ -9,8 +9,8 @@ import { makeAdapter } from "./model";
  * chosen: irrelevant options are hidden with a short explanation, and unknown
  * config keys are preserved across round-trips.
  */
-@customElement("adaptive-thermostat-card-editor")
-export class AdaptiveThermostatCardEditor extends LitElement implements LovelaceCardEditor {
+@customElement("custom-thermostat-card-editor")
+export class CustomThermostatCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() private config?: ThermostatCardConfig;
 
@@ -125,6 +125,6 @@ function opts(values: string[]) {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "adaptive-thermostat-card-editor": AdaptiveThermostatCardEditor;
+    "custom-thermostat-card-editor": CustomThermostatCardEditor;
   }
 }

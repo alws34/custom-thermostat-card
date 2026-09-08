@@ -18,13 +18,13 @@ const VERSION = typeof __CARD_VERSION__ === "string" ? __CARD_VERSION__ : "dev";
 
 /* eslint-disable no-console */
 console.info(
-  `%c adaptive-thermostat-card %c v${VERSION} `,
+  `%c custom-thermostat-card %c v${VERSION} `,
   "background:#ff8c42;color:#fff;border-radius:3px 0 0 3px;padding:2px 4px",
   "background:#2b9af9;color:#fff;border-radius:0 3px 3px 0;padding:2px 4px",
 );
 
-@customElement("adaptive-thermostat-card")
-export class AdaptiveThermostatCard extends LitElement implements LovelaceCard {
+@customElement("custom-thermostat-card")
+export class CustomThermostatCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
   @state() private config?: ThermostatCardConfig;
   @state() private inlineOpen = false;
@@ -76,7 +76,7 @@ export class AdaptiveThermostatCard extends LitElement implements LovelaceCard {
   }
 
   static getConfigElement(): HTMLElement {
-    return document.createElement("adaptive-thermostat-card-editor");
+    return document.createElement("custom-thermostat-card-editor");
   }
 
   static getStubConfig(hass: HomeAssistant): Record<string, unknown> {
@@ -213,18 +213,18 @@ export class AdaptiveThermostatCard extends LitElement implements LovelaceCard {
 (window as unknown as { customCards?: unknown[] }).customCards =
   (window as unknown as { customCards?: unknown[] }).customCards || [];
 (window as unknown as { customCards: Record<string, unknown>[] }).customCards.push({
-  type: "adaptive-thermostat-card",
-  name: "Adaptive Thermostat Card",
+  type: "custom-thermostat-card",
+  name: "Custom Thermostat Card",
   description: "Apple-Home-inspired thermostat with a horseshoe dial, compact tiles and an overlay. climate + water_heater.",
   preview: true,
-  documentationURL: "https://github.com/alws34/thermostat-card",
+  documentationURL: "https://github.com/alws34/custom-thermostat-card",
 });
 
 // editor is loaded lazily but registered here for the bundle
-import "./adaptive-thermostat-card-editor";
+import "./custom-thermostat-card-editor";
 
 declare global {
   interface HTMLElementTagNameMap {
-    "adaptive-thermostat-card": AdaptiveThermostatCard;
+    "custom-thermostat-card": CustomThermostatCard;
   }
 }

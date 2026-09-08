@@ -53,17 +53,43 @@ const base = (id, attrs, state) => ({
   attributes: attrs,
 });
 
-function freshEntities() {
+const FIXTURES = {
+  C: {
+    living: { current_temperature: 21.3, temperature: 22, min_temp: 7, max_temp: 35, target_temp_step: 0.5 },
+    bedroom: {
+      current_temperature: 20.5,
+      target_temp_low: 19.5,
+      target_temp_high: 23,
+      min_temp: 7,
+      max_temp: 35,
+      target_temp_step: 0.5,
+    },
+    office: { current_temperature: 25.8, temperature: 23, min_temp: 16, max_temp: 30, target_temp_step: 1 },
+    tank: { current_temperature: 48, temperature: 51, min_temp: 43, max_temp: 62 },
+  },
+  F: {
+    living: { current_temperature: 70, temperature: 72, min_temp: 45, max_temp: 95, target_temp_step: 1 },
+    bedroom: {
+      current_temperature: 69,
+      target_temp_low: 67,
+      target_temp_high: 73,
+      min_temp: 45,
+      max_temp: 95,
+      target_temp_step: 1,
+    },
+    office: { current_temperature: 78, temperature: 74, min_temp: 60, max_temp: 86, target_temp_step: 1 },
+    tank: { current_temperature: 118, temperature: 124, min_temp: 110, max_temp: 140 },
+  },
+};
+
+function freshEntities(scale = "C") {
+  const f = FIXTURES[scale];
   return {
     "climate.living_room": base(
       "climate.living_room",
       {
         friendly_name: "Living Room",
-        current_temperature: 21.3,
-        temperature: 22,
-        min_temp: 7,
-        max_temp: 35,
-        target_temp_step: 0.5,
+        ...f.living,
         hvac_modes: ["off", "heat", "cool", "heat_cool", "auto"],
         hvac_action: "heating",
         supported_features: 1 | 2 | 8 | 16 | 32,
@@ -80,13 +106,8 @@ function freshEntities() {
       "climate.bedroom",
       {
         friendly_name: "Bedroom",
-        current_temperature: 20.5,
         temperature: null,
-        target_temp_low: 19.5,
-        target_temp_high: 23,
-        min_temp: 7,
-        max_temp: 35,
-        target_temp_step: 0.5,
+        ...f.bedroom,
         hvac_modes: ["off", "heat", "cool", "heat_cool"],
         hvac_action: "idle",
         supported_features: 1 | 2,
@@ -97,11 +118,7 @@ function freshEntities() {
       "climate.office",
       {
         friendly_name: "Office AC",
-        current_temperature: 25.8,
-        temperature: 23,
-        min_temp: 16,
-        max_temp: 30,
-        target_temp_step: 1,
+        ...f.office,
         hvac_modes: ["off", "cool", "dry", "fan_only"],
         hvac_action: "cooling",
         supported_features: 1 | 8,
@@ -119,10 +136,7 @@ function freshEntities() {
       "water_heater.tank",
       {
         friendly_name: "Hot Water",
-        current_temperature: 48,
-        temperature: 51,
-        min_temp: 43,
-        max_temp: 62,
+        ...f.tank,
         operation_list: ["off", "eco", "electric", "performance"],
         operation_mode: "eco",
         away_mode: "off",
@@ -133,7 +147,8 @@ function freshEntities() {
   };
 }
 
-let entities = freshEntities();
+let scale = "C";
+let entities = freshEntities(scale);
 const cards = new Set();
 
 // ---- fake service bus -----------------------------------------------
@@ -179,7 +194,7 @@ function makeHass() {
     themes: { darkMode: document.getElementById("theme").value.endsWith("dark") },
     language: "en",
     locale: { language: "en" },
-    config: { unit_system: { temperature: "°C" } },
+    config: { unit_system: { temperature: `°${scale}` } },
     localize: (k) => LOCAL[k] || "",
     callService: async (domain, service, data) => {
       applyService(domain, service, data);
@@ -235,9 +250,9 @@ function build() {
     surface.className = `surface ${theme}` + (spec.resize ? " resizer" : "");
     if (spec.w) surface.style.width = spec.w + "px";
 
-    const tag = spec.editor ? "adaptive-thermostat-card-editor" : "adaptive-thermostat-card";
+    const tag = spec.editor ? "custom-thermostat-card-editor" : "custom-thermostat-card";
     const el = document.createElement(tag);
-    el.setConfig({ type: "custom:adaptive-thermostat-card", ...spec.cfg });
+    el.setConfig({ type: "custom:custom-thermostat-card", ...spec.cfg });
     el.hass = h;
     cards.add(el);
     surface.appendChild(el);
@@ -247,6 +262,11 @@ function build() {
 }
 
 document.getElementById("theme").addEventListener("change", build);
+document.getElementById("unit").addEventListener("change", (e) => {
+  scale = e.target.value;
+  entities = freshEntities(scale);
+  build();
+});
 document.getElementById("reduce").addEventListener("change", (e) =>
   document.body.classList.toggle("reduce", e.target.checked),
 );
@@ -254,13 +274,18 @@ document.getElementById("rtl").addEventListener("change", (e) =>
   document.body.classList.toggle("rtl", e.target.checked),
 );
 document.getElementById("reset").addEventListener("click", () => {
-  entities = freshEntities();
+  entities = freshEntities(scale);
   build();
 });
 
-// allow ?theme=t-neu-dark&reduce=1&rtl=1 for screenshots / deep links
+// allow ?theme=t-neu-dark&unit=F&reduce=1&rtl=1 for screenshots / deep links
 const params = new URLSearchParams(location.search);
 if (params.get("theme")) document.getElementById("theme").value = params.get("theme");
+if (params.get("unit")) {
+  scale = params.get("unit");
+  document.getElementById("unit").value = scale;
+  entities = freshEntities(scale);
+}
 if (params.get("reduce")) {
   document.getElementById("reduce").checked = true;
   document.body.classList.add("reduce");
@@ -270,4 +295,33 @@ if (params.get("rtl")) {
   document.body.classList.add("rtl");
 }
 
-customElements.whenDefined("adaptive-thermostat-card").then(build);
+customElements.whenDefined("custom-thermostat-card").then(build);
+
+// ?sim=drag — synthetic drag across every full dial, for headless QA screenshots
+if (params.get("sim") === "drag") {
+  setTimeout(() => {
+    document.querySelectorAll("custom-thermostat-card").forEach((card) => {
+      const dial = card.shadowRoot
+        ?.querySelector("atc-full")
+        ?.shadowRoot?.querySelector("atc-dial")
+        ?.shadowRoot?.querySelector("svg");
+      if (!dial) return;
+      const r = dial.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const pt = (type, ang) =>
+        dial.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            composed: true,
+            pointerId: 1,
+            clientX: cx + Math.cos(ang) * r.width * 0.42,
+            clientY: cy + Math.sin(ang) * r.height * 0.42,
+          }),
+        );
+      pt("pointerdown", (200 * Math.PI) / 180);
+      for (let a = 200; a <= 320; a += 8) pt("pointermove", (a * Math.PI) / 180);
+      pt("pointerup", (320 * Math.PI) / 180);
+    });
+  }, 400);
+}
