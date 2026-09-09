@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-09-09
+
+### Fixed
+
+- **`dial_style` was not saving from the visual editor.** It used a dropdown
+  (`ha-select`) selector — the only field in the editor that did — and that
+  control does not always propagate its selection inside the card-editor
+  dialog. It is now a radio list, the same selector shape as the other
+  working fields.
+- The dial style field is shown for both display modes now (with a note that
+  it only affects `full`), so switching `display` no longer hides it.
+
 ## [0.2.1] - 2026-09-09
 
 ### Fixed

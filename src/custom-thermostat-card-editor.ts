@@ -48,17 +48,16 @@ export class CustomThermostatCardEditor extends LitElement implements LovelaceCa
               selector: { select: { mode: "box", options: opts(["overlay", "inline"]) } },
             },
           ]
-        : [
-            {
-              name: "dial_style",
-              selector: {
-                select: {
-                  mode: "dropdown",
-                  options: opts(["arc", "ticks", "gradient", "thermometer", "minimal"]),
-                },
-              },
-            },
-          ]),
+        : []),
+      {
+        name: "dial_style",
+        selector: {
+          select: {
+            mode: "list",
+            options: opts(["arc", "ticks", "gradient", "thermometer", "minimal"]),
+          },
+        },
+      },
       {
         type: "grid",
         name: "",
@@ -120,10 +119,9 @@ export class CustomThermostatCardEditor extends LitElement implements LovelaceCa
             This entity advertises no preset / fan / swing controls, so the “More controls” section is hidden.
           </div>`
         : nothing}
-      ${(this.config.display ?? "compact") === "full"
+      ${(this.config.display ?? "compact") === "compact"
         ? html`<div class="note">
-            The dial style applies to the full display. The compact tile never draws a dial, so
-            it and the open behavior only apply to the compact display.
+            The dial style applies to the full display only — the compact tile never draws a dial.
           </div>`
         : nothing}
     `;
