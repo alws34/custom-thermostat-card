@@ -4,15 +4,16 @@ import { customElement, property } from "lit/decorators.js";
 /**
  * Animated numeric readout.
  *
- * Motion is **linear and continuous**. A single value (`shown`) is
- * interpolated toward the target at a constant rate (segment clamped to
- * 90–500 ms) and every animation frame repositions the digit wheels from
- * that value — there is no CSS transition and nothing snaps. If the target
- * moves again mid-flight (dragging the dial) the readout just keeps tracking
- * it, so the digits trail the finger.
+ * Motion is **linear and continuous**. The value is tracked in "display
+ * units" — `value` rounded to `precision` — and a single interpolant
+ * (`shownScaled`) moves toward that target at a constant rate (segment
+ * clamped to 90–500 ms). Every animation frame repositions the digit wheels
+ * from the interpolant; there is no CSS transition and nothing snaps. If the
+ * target moves again mid-flight (dragging the dial) the readout keeps
+ * tracking it, so the digits trail the finger.
  *
  *  - `odometer`: per-digit wheels; the last wheel rolls continuously, higher
- *    wheels only turn in the final tenth before they carry (mechanical look).
+ *    wheels only in the final unit before they carry (mechanical look).
  *  - `reel`: the whole value counts as one unit.
  *
  * Under `prefers-reduced-motion` (or when `--atc-roll-duration` is `0ms`) the
@@ -26,12 +27,12 @@ export class AtcNumber extends LitElement {
   @property({ type: String }) suffix = "°";
   @property({ type: String }) animation: "odometer" | "reel" = "odometer";
 
-  /** continuously interpolated value actually shown */
-  private shown = 0;
+  /** interpolant, in display units × 10^precision (integer at rest) */
+  private shownScaled = 0;
   private started = false;
   private raf = 0;
   private prevTs = 0;
-  /** units per ms — constant within a segment, so motion is linear */
+  /** scaled units per ms — constant within a segment, so motion is linear */
   private speed = 0;
   private segTarget = Number.NaN;
 
@@ -46,16 +47,18 @@ export class AtcNumber extends LitElement {
       display: inline-flex;
       align-items: baseline;
     }
-    /* CSS-odometer wheel: a hidden glyph gives the box a real text baseline,
-       the digit strip is absolutely positioned over it and translated. */
+    /* CSS odometer wheel. A hidden in-flow glyph gives the box a real text
+       baseline and its width; the digit strip is absolutely positioned over
+       it. clip-path (not overflow) hides the off-wheel digits — overflow
+       would move the inline-block baseline to its bottom edge. */
     .wheel {
       position: relative;
       display: inline-block;
-      overflow: hidden;
       height: 1em;
+      clip-path: inset(0);
     }
     .wheel::after {
-      content: "8";
+      content: "0";
       visibility: hidden;
     }
     .strip {
@@ -89,13 +92,22 @@ export class AtcNumber extends LitElement {
     }
   `;
 
+  private get pow(): number {
+    return Math.pow(10, this.precision);
+  }
+
+  /** target in scaled integer units */
+  private targetScaled(): number {
+    return Math.round((Number.isFinite(this.value) ? this.value : 0) * this.pow);
+  }
+
   firstUpdated(): void {
-    this.shown = this.value;
+    this.shownScaled = this.targetScaled();
     this.started = true;
   }
 
   willUpdate(changed: Map<string, unknown>): void {
-    if (changed.has("value") && this.started && this.shown !== this.value) {
+    if (changed.has("value") && this.started && this.shownScaled !== this.targetScaled()) {
       this.retarget();
     }
   }
@@ -110,7 +122,7 @@ export class AtcNumber extends LitElement {
     if (this.reducedMotion()) {
       if (this.raf) cancelAnimationFrame(this.raf);
       this.raf = 0;
-      this.shown = this.value;
+      this.shownScaled = this.targetScaled();
       this.requestUpdate();
       return;
     }
@@ -121,12 +133,13 @@ export class AtcNumber extends LitElement {
     }
   }
 
-  /** Pick a constant speed for the current shown → value segment. */
+  /** Pick a constant speed for the current shownScaled → target segment. */
   private setSegment(): void {
-    const dist = Math.abs(this.value - this.shown);
-    const dur = Math.min(500, Math.max(90, dist / 0.03));
-    this.speed = dur > 0 ? dist / dur : 0.03;
-    this.segTarget = this.value;
+    const target = this.targetScaled();
+    const distDisplay = Math.abs(target - this.shownScaled) / this.pow;
+    const dur = Math.min(500, Math.max(90, distDisplay * 130));
+    this.speed = dur > 0 ? Math.abs(target - this.shownScaled) / dur : this.pow;
+    this.segTarget = target;
   }
 
   private frame = (ts?: number): void => {
@@ -141,17 +154,18 @@ export class AtcNumber extends LitElement {
     const dt = Number.isFinite(raw) && raw > 0 ? Math.min(50, raw) : 16;
     this.prevTs = now;
 
-    if (this.value !== this.segTarget) this.setSegment(); // target moved (drag)
+    const target = this.targetScaled();
+    if (target !== this.segTarget) this.setSegment(); // target moved (drag)
 
-    const diff = this.value - this.shown;
+    const diff = target - this.shownScaled;
     const move = this.speed * dt;
     if (move === 0 || Math.abs(diff) <= move) {
-      this.shown = this.value;
+      this.shownScaled = target;
       this.raf = 0;
       this.requestUpdate();
       return;
     }
-    this.shown += Math.sign(diff) * move;
+    this.shownScaled += Math.sign(diff) * move;
     this.requestUpdate();
     this.raf = requestAnimationFrame(this.frame);
   };
@@ -181,13 +195,12 @@ export class AtcNumber extends LitElement {
   }
 
   render() {
-    // during a frame loop show the interpolated value; otherwise the real one
-    const display = this.raf ? this.shown : this.value;
+    const scaled = this.raf ? this.shownScaled : this.targetScaled();
     const targetStr = this.fmt(this.value);
     const body =
       this.animation === "reel"
-        ? html`<span class="reel">${this.fmt(display)}</span>`
-        : this.wheels(display, targetStr);
+        ? html`<span class="reel">${this.raf ? this.fmt(scaled / this.pow) : targetStr}</span>`
+        : this.wheels(scaled, targetStr);
     return html`
       <span class="glyphs" aria-hidden="true">${body}</span>
       <span class="suffix" aria-hidden="true">${this.suffix}</span>
@@ -196,15 +209,14 @@ export class AtcNumber extends LitElement {
   }
 
   /**
-   * Per-digit wheels positioned from the continuous `value`. Wheel `k`
-   * (k = 0 is the least significant printed digit) sits at
-   * `digit_k + carry`, where `carry` is only non-zero in the final unit
-   * before every lower wheel simultaneously rolls over — so a settled
-   * reading like `19.5` shows a solid `1`, not a `1` frozen mid-turn.
+   * Per-digit wheels positioned from the scaled interpolant. Wheel `k`
+   * (k = 0 is the least significant printed digit) sits at `digit_k + carry`,
+   * where `carry` is only non-zero in the final unit before every lower
+   * wheel simultaneously rolls over — so a settled `19.5` shows a solid `1`.
    */
-  private wheels(value: number, layout: string) {
-    const negative = value < 0 || layout.startsWith("-");
-    const scaled = Math.abs(value) * Math.pow(10, this.precision);
+  private wheels(scaled: number, layout: string) {
+    const negative = scaled < 0 || layout.startsWith("-");
+    const abs = Math.abs(scaled);
     const chars = layout.replace("-", "").split("");
     let placesToRight = chars.filter((c) => c >= "0" && c <= "9").length - 1;
 
@@ -217,8 +229,8 @@ export class AtcNumber extends LitElement {
       }
       const k = placesToRight--;
       const pow = Math.pow(10, k);
-      const digit = Math.floor(scaled / pow) % 10;
-      const below = scaled % pow; // combined value of every lower wheel
+      const digit = Math.floor(abs / pow) % 10;
+      const below = abs % pow; // combined value of every lower wheel
       const carry = Math.max(0, below - (pow - 1)); // 0 until the last unit
       const offset = digit + carry;
       out.push(html`

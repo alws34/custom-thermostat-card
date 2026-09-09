@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-09-09
+
+### Fixed
+
+- Odometer readout garbled the number when the entity uses a whole-degree
+  step (`precision 0`) and `show_current_as_primary` was on: a current
+  reading like `25.8` was drawn as `2` plus a wheel frozen 80% of the way to
+  the next digit. The odometer now tracks the value in display units —
+  rounded to the shown precision — so a settled reading always sits on solid
+  digits, and only rolls between whole displayed values while animating.
+- Wheels are clipped with `clip-path` instead of `overflow`, which was
+  shifting the digits off the text baseline in some layouts.
+
 ## [0.2.2] - 2026-09-09
 
 ### Fixed
